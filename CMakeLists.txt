@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.10)
+project(201703)
+
+set(CMAKE_CXX_STANDARD 17)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --static --pedantic")
+
+add_executable(201703 main.cpp binary_tree.hpp)
