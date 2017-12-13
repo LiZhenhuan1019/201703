@@ -3,6 +3,6 @@ project(201703)
 
 set(CMAKE_CXX_STANDARD 17)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --static --pedantic")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall --static --pedantic")
 
-add_executable(201703 main.cpp binary_tree.hpp)
+add_executable(201703 main.cpp binary_tree.hpp test/test_binary_tree.cpp test/test_binary_tree.hpp)
