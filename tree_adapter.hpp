@@ -11,10 +11,11 @@
 namespace binary_tree_nm
 {
     using namespace std::literals;
-    template <typename T>
+
+    template <typename Key, typename Value = null_value_tag>
     class tree_adapter
     {
-        std::optional<binary_tree<T>> tree;
+        std::optional<binary_tree<Key, Value>> tree;
 
     public:
         struct tree_exists : std::logic_error
@@ -43,24 +44,44 @@ namespace binary_tree_nm
         {
             if (tree)
                 throw tree_exists(__func__);
-            tree = binary_tree<T>();
+            tree = binary_tree<Key, Value>();
         }
         void DestroyBiTree()
         {
-            if(!tree)
+            if (!tree)
                 throw tree_not_exist(__func__);
             tree.reset();
         }
-        void CreateBiTree(std::string const&definition)
+        void CreateBiTree(std::string const &definition)
         {
-            auto generated_tree = tree_parse<T, left_first>(definition).get_binary_tree();
-            if(!generated_tree)
+            auto generated_tree = tree_parse<left_first, Key, Value>(definition).get_binary_tree();
+            if (!generated_tree)
                 throw parse_failed(__func__);
             tree = generated_tree;
         }
         void ClearBiTree()
         {
-
+            if (!tree)
+                throw tree_not_exist(__func__);
+            tree->clear();
+        }
+        auto BiTreeEmpty()
+        {
+            if (!tree)
+                throw tree_not_exist(__func__);
+            return tree->empty();
+        }
+        auto BiTreeDepth()
+        {
+            if (!tree)
+                throw tree_not_exist(__func__);
+            return tree->depth();
+        }
+        auto Root()
+        {
+            if (!tree)
+                throw tree_not_exist(__func__);
+            return tree->root();
         }
 
     };

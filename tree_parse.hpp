@@ -10,23 +10,30 @@
 
 namespace binary_tree_nm
 {
-    template <typename U>
-    struct final_call
+    namespace detail
     {
-        final_call(U c)
-            : call(c)
+        template <typename U>
+        struct final_call
         {
-        }
-        ~final_call()
-        {
-            call();
-        }
-        U call;
-    };
+            final_call(U c)
+                : call(c)
+            {
+            }
+            ~final_call()
+            {
+                call();
+            }
+            U call;
+        };
+
+    }
+
     using namespace std::literals;
-    template <typename T, typename direction>
+    template <typename direction, typename Key, typename Value = null_value_tag>
     class tree_parse
     {
+        using tree_type = binary_tree<Key, Value>;
+        using value_type = typename tree_type::value_type;
         std::string_view source;
         std::size_t pos = 0;
 
@@ -49,10 +56,10 @@ namespace binary_tree_nm
             : source(str)
         {
         }
-        std::optional<binary_tree<T>> get_binary_tree()
+        std::optional<tree_type> get_binary_tree()
         {
             force_read_char('[');
-            auto _ = final_call{[=]
+            auto _ = detail::final_call{[=]
                                 { force_read_char(']'); }};
             if (auto element = get_element())
             {
@@ -63,16 +70,16 @@ namespace binary_tree_nm
         }
 
     private:
-        binary_tree <T> get_subtree(T &&parent_element)
+        tree_type get_subtree(value_type &&parent_element)
         {
-            binary_tree <T> tree;
+            tree_type tree;
             tree.set_root(parent_element);
             fill_child<direction>(tree);
             fill_child<typename direction::inverse>(tree);
             return tree;
         }
         template <typename dir>
-        void fill_child(binary_tree <T> &tree)
+        void fill_child(tree_type &tree)
         {
             force_read_char(',');
             if (auto element = get_element())
@@ -80,7 +87,7 @@ namespace binary_tree_nm
                 tree.template replace_child<dir>(tree.root(), get_subtree(std::move(element.value())));
             }
         }
-        std::optional<T> get_element()
+        std::optional<value_type> get_element()
         {
             if (is_null())
                 return std::nullopt;
@@ -109,7 +116,7 @@ namespace binary_tree_nm
             while (pos < source.size() && std::isblank(source[pos]))
                 ++pos;
         }
-        T read_element()
+        value_type read_element()
         {
             std::string input;
             if (read_char('"'))
@@ -119,7 +126,7 @@ namespace binary_tree_nm
             } else
                 input = read_until(',', ']');
             std::istringstream stream(input);
-            T result;
+            value_type result;
             stream >> result;
             return result;
         }
@@ -153,5 +160,6 @@ namespace binary_tree_nm
             return str;
         }
     };
+
 }
 #endif //INC_201703_TREE_PARSE_HPP
