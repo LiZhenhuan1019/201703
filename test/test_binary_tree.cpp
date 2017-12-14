@@ -66,4 +66,8 @@ void test_binary_tree()
         assert(--postorder_iter == left_right);
         assert(--postorder_iter == left_left);
     }
+    {
+        auto tree2 = tree;
+        assert(tree2 == tree);
+    }
 }
