@@ -189,11 +189,6 @@ namespace binary_tree_nm
             {
                 return lhs.key < rhs.key;
             }
-            friend std::istream &operator>>(std::istream &in, stored_t &s)
-            {
-                in >> s.key >> s.value;
-                return in;
-            }
             friend std::ostream &operator<<(std::ostream &out, stored_t const &s)
             {
                 out << s.key <<" " << s.value;

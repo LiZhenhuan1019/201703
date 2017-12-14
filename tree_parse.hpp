@@ -10,6 +10,13 @@
 
 namespace binary_tree_nm
 {
+    struct parse_failed : std::domain_error
+    {
+        parse_failed()
+            : domain_error("parse failed in tree_parse.")
+        {
+        }
+    };
     namespace detail
     {
         template <typename U>
@@ -25,6 +32,20 @@ namespace binary_tree_nm
             }
             U call;
         };
+
+        template <typename value>
+        void assign_element(std::string &&str, value &v)
+        {
+            std::istringstream stream(std::move(str));
+            stream >> v;
+            if (!stream)
+                throw parse_failed();
+        }
+        template <>
+        inline void assign_element(std::string &&str, std::string &v)
+        {
+            v = std::move(str);
+        }
 
     }
 
@@ -60,7 +81,7 @@ namespace binary_tree_nm
         {
             force_read_char('[');
             auto _ = detail::final_call{[=]
-                                { force_read_char(']'); }};
+                                        { force_read_char(']'); }};
             if (auto element = get_element())
             {
                 auto tree = get_subtree(std::move(element.value()));
@@ -116,18 +137,32 @@ namespace binary_tree_nm
             while (pos < source.size() && std::isblank(source[pos]))
                 ++pos;
         }
+
+        template <typename Value_t = value_type, typename Key_t = Key, typename std::enable_if<std::is_same_v<Value_t, key_t>, int>::type = 0>
         value_type read_element()
         {
             std::string input;
-            if (read_char('"'))
+            if (read_char('('))
             {
-                input = read_until('"');
-                force_read_char('"');
+                input = read_until(')');
+                force_read_char(')');
             } else
                 input = read_until(',', ']');
-            std::istringstream stream(input);
             value_type result;
-            stream >> result;
+            detail::assign_element(std::move(input), result);
+            return result;
+        }
+        template <std::enable_if_t<std::is_same_v<value_type, detail::stored_t<Key, Value>>, int> = 1>
+        value_type read_element()
+        {
+            force_read_char('(');
+            std::string input_key = read_until(',');
+            force_read_char(',');
+            std::string input_value = read_until(')');
+            force_read_char(')');
+            value_type result;
+            detail::assign_element(std::move(input_key), result.key);
+            detail::assign_element(std::move(input_value), result.value);
             return result;
         }
         bool read_char(char c)
