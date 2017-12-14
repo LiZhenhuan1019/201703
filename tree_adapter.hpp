@@ -8,7 +8,7 @@
 #include "binary_tree.hpp"
 #include "tree_parse.hpp"
 
-namespace binary_tree
+namespace binary_tree_nm
 {
     using namespace std::literals;
     template <typename T>
@@ -48,7 +48,7 @@ namespace binary_tree
         {
             if(!tree)
                 throw tree_not_exist(__func__);
-
+            tree_parse<T, left_first> parse(str);
         }
 
     };

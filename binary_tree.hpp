@@ -5,7 +5,7 @@
 #include <memory>
 #include <cassert>
 
-namespace binary_tree
+namespace binary_tree_nm
 {
     struct right_first;
     struct left_first
@@ -325,7 +325,7 @@ namespace binary_tree
             operator const_iterator<order, direction>()
             {
                 return const_iterator<order, direction>(tree, node);
-            };
+            }
             explicit operator bool() const
             {
                 return node != nullptr;
@@ -556,7 +556,7 @@ namespace binary_tree
     bool operator!=(iter1 const &lhs, iter2 const &rhs)
     {
         return !(lhs == rhs);
-    };
+    }
 }
 
 #endif //INC_201703_BINARY_TREE_HPP
