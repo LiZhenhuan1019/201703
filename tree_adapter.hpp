@@ -8,7 +8,7 @@
 #include "binary_tree.hpp"
 #include "tree_parse.hpp"
 
-namespace binary_tree
+namespace binary_tree_nm
 {
     using namespace std::literals;
     template <typename T>
@@ -31,6 +31,13 @@ namespace binary_tree
             {
             }
         };
+        struct parse_failed : std::domain_error
+        {
+            parse_failed(std::string function)
+                : domain_error("Parse tree failed in function"s + std::move(function) + ".")
+            {
+            }
+        };
 
         void InitBiTree()
         {
@@ -46,9 +53,10 @@ namespace binary_tree
         }
         void CreateBiTree(std::string const&str)
         {
-            if(!tree)
-                throw tree_not_exist(__func__);
-
+            auto generated_tree = tree_parse<T, left_first>(str).get_binary_tree();
+            if(!generated_tree)
+                throw parse_failed(__func__);
+            tree = generated_tree;
         }
 
     };
