@@ -409,9 +409,9 @@ namespace binary_tree_nm
             for (auto src_iter = src.begin<preorder>(), dest_iter = cbegin<preorder>(); src_iter != src.end(); ++src_iter, ++dest_iter)
             {
                 if (src_iter.first_child())
-                    set_child<default_direction>(dest_iter, *src_iter.first_child());
+                    new_child<default_direction>(dest_iter, *src_iter.first_child());
                 if (src_iter.second_child())
-                    set_child<default_direction::inverse>(dest_iter, *src_iter.second_child());
+                    new_child<default_direction::inverse>(dest_iter, *src_iter.second_child());
             }
         }
         binary_tree &operator=(binary_tree &&) = default;
@@ -490,13 +490,18 @@ namespace binary_tree_nm
             return replace(subtree, binary_tree{});
         }
 
+        void clear()
+        {
+            root_.reset();
+        }
+
         template <typename ...Args>
         void set_root(Args &&...args)
         {
             root_ = make_handler(T(std::forward<Args>(args)...), nullptr);
         }
         template <typename direction, typename iter, typename ...Args>
-        iter set_child(iter parent, Args &&...args)
+        iter new_child(iter parent, Args &&...args)
         {
             auto &child = iterate_direction<direction>::first_child(parent.node);
             child = make_handler(T(std::forward<Args>(args)...), parent.node);

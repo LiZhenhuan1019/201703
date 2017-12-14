@@ -11,16 +11,16 @@ void test_binary_tree()
     assert(*root == "root");
     assert(++root == tree.end());
     assert(--root == tree.begin());
-    auto left = tree.set_child<left_child>(root, "left child");
+    auto left = tree.new_child<left_child>(root, "left child");
     assert(*left == "left child");
     assert(*root.first_child() == "left child");
-    auto right = tree.set_child<right_child>(root, "right child");
+    auto right = tree.new_child<right_child>(root, "right child");
     assert(*right == "right child");
     assert(*root.second_child() == "right child");
-    auto left_left = tree.set_child<left_child>(left, "left left");
+    auto left_left = tree.new_child<left_child>(left, "left left");
     assert(*left_left == "left left");
     assert(*left.first_child() == "left left");
-    auto left_right = tree.set_child<right_child>(left, "left right");
+    auto left_right = tree.new_child<right_child>(left, "left right");
     assert(*left_right == "left right");
     assert(*left.second_child() == "left right");
     {

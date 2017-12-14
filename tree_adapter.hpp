@@ -51,12 +51,16 @@ namespace binary_tree_nm
                 throw tree_not_exist(__func__);
             tree.reset();
         }
-        void CreateBiTree(std::string const&str)
+        void CreateBiTree(std::string const&definition)
         {
-            auto generated_tree = tree_parse<T, left_first>(str).get_binary_tree();
+            auto generated_tree = tree_parse<T, left_first>(definition).get_binary_tree();
             if(!generated_tree)
                 throw parse_failed(__func__);
             tree = generated_tree;
+        }
+        void ClearBiTree()
+        {
+
         }
 
     };
