@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <queue>
 #include "binary_tree.hpp"
 #include "tree_parse.hpp"
 
@@ -198,14 +199,14 @@ namespace binary_tree_nm
         template <typename order_t = preorder_t, typename dir_t = left_first_t>
         auto &Value(key_type const &key, order_t = order_t{}, dir_t = dir_t{}) const
         {
-            if (auto iter = std::find(tree->template begin<order_t, dir_t>(), tree->end(), key))
+            if (auto iter = std::find(tree->template begin<order_t, dir_t>(), tree->template end<order_t, dir_t>(), key))
                 return get_value(*iter);
             throw precondition_failed_to_satisfy(__func__);
         }
         template <typename U, typename order_t = preorder_t, typename dir_t = left_first_t>
         void Assign(key_type const &key, U &&value, order_t = order_t{}, dir_t = dir_t{})
         {
-            if (auto iter = std::find(tree->template begin<order_t, dir_t>(), tree->end(), key))
+            if (auto iter = std::find(tree->template begin<order_t, dir_t>(), tree->template end<order_t, dir_t>(), key))
                 get_value(*iter) = std::forward<U>(value);
             else
                 throw precondition_failed_to_satisfy(__func__);
@@ -214,21 +215,21 @@ namespace binary_tree_nm
         template <typename order_t = preorder_t, typename dir_t = left_first_t>
         auto Parent(key_type const &key, order_t = order_t{}, dir_t = dir_t{}) const
         {
-            if (auto iter = std::find(tree->template begin<order_t, dir_t>(), tree->end(), key))
+            if (auto iter = std::find(tree->template begin<order_t, dir_t>(), tree->template end<order_t, dir_t>(), key))
                 return iter.parent();
             throw precondition_failed_to_satisfy(__func__);
         }
         template <typename child_t, typename order_t = preorder_t, typename dir_t = left_first_t>
         auto Child(key_type const &key, child_t = child_t{}, order_t = order_t{}, dir_t = dir_t{}) const
         {
-            if (auto iter = std::find(tree->template begin<order_t, dir_t>(), tree->end(), key))
+            if (auto iter = std::find(tree->template begin<order_t, dir_t>(), tree->template end<order_t, dir_t>(), key))
                 return iter.template first_child<child_t>();
             throw precondition_failed_to_satisfy(__func__);
         }
         template <typename child_t, typename order_t = preorder_t, typename dir_t = left_first_t>
         auto Sibling(key_type const &key, child_t = child_t{}, order_t = order_t{}, dir_t = dir_t{}) const
         {
-            if (auto iter = std::find(tree->template begin<order_t, dir_t>(), tree->end(), key))
+            if (auto iter = std::find(tree->template begin<order_t, dir_t>(), tree->template end<order_t, dir_t>(), key))
             {
                 auto desired_child = iter.parent().template first_child<child_t>();
                 if (desired_child == iter)
@@ -244,6 +245,32 @@ namespace binary_tree_nm
             auto farest = tree->template begin<inorder_t, dir_t>();
             auto empty = tree->template replace_child<dir_t>(farest, std::move(replaced));
             assert(empty.empty());
+        }
+        template <typename child_t, typename iter>
+        auto DeleteChild(iter pos)
+        {
+            return tree->template replace_child<child_t>(pos, tree_type{});
+        }
+        template <typename Callable, typename order_t, typename dir_t = left_first_t>
+        void Traverse(Callable callable, order_t order, dir_t = dir_t{})
+        {
+            for(auto iter = tree->template begin<order_t, dir_t>(); iter != tree->template end<order_t, dir_t>(); ++iter)
+                callable(*iter);
+        }
+        template <typename Callable, typename dir_t = left_first_t>
+        void LevelOrderTraverse(Callable callable, dir_t = dir_t{})
+        {
+            auto iter = tree->template root<preorder_t, dir_t>();
+            std::queue<decltype(iter)> queue{iter};
+            while(!queue.empty())
+            {
+                iter = queue.back(), queue.pop();
+                if(iter.template first_child<dir_t>())
+                    queue.push(iter.template first_child<dir_t>());
+                if(iter.template second_child<dir_t>())
+                    queue.push(iter.template second_child<dir_t>());
+                callable(*iter);
+            }
         }
 
         friend bool operator==(tree_adapter const&lhs, tree_adapter const&rhs)

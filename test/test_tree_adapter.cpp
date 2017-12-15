@@ -24,8 +24,16 @@ void test_tree_adapter()
     assert(get_value(*adapter.Child<right_t>("right")) == 5);
     assert(get_value(*adapter.Sibling<right_t>("left")) == 4);
     assert(get_value(*adapter.Sibling<left_t>("right")) == 2);
-    adapter.InsertChild<right_t>(adapter.Root().first_child<right_t>(), tree_parse<left_first_t, detail::stored_t<std::string, int>>(definition).get_binary_tree().value());
+    auto right_node = adapter.Child<right_t>("root");
+    adapter.InsertChild<right_t>(right_node, tree_parse<left_first_t, detail::stored_t<std::string, int>>(definition).get_binary_tree().value());
     decltype(adapter) equals;
     equals.CreateBiTree(R"~([(root, 1), (left, 2),(left left,3),null,null,null,(right,4),null, (root, 1), (left,2),(left left,3),null,null,null,(right,4),null,(right right, 5),null, (right right,5),null,null])~");
+    assert(adapter == equals);
+    auto parent_of_replaced = adapter.Child("right", right_child, inorder, right_first);
+    assert(get_key(*parent_of_replaced) == "right right");
+    auto replaced = adapter.DeleteChild<right_t>(parent_of_replaced);
+    adapter.DeleteChild<right_t>(right_node);
+    adapter.InsertChild<right_t>(right_node, replaced);
+    equals.CreateBiTree(definition);
     assert(adapter == equals);
 }
