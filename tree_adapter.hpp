@@ -10,12 +10,114 @@
 
 namespace binary_tree_nm
 {
+    class null_value_tag;
+    namespace detail
+    {
+        template <typename Key, typename Value>
+        struct stored_t
+        {
+            Key key;
+            Value value;
+            friend std::ostream &operator<<(std::ostream &out, stored_t const &s)
+            {
+                out << s.key << " " << s.value;
+                return out;
+            }
+        };
+        template <typename T>
+        auto const &get_key(T const &t)
+        {
+            return t;
+        }
+        template <typename Key, typename Value>
+        auto const &get_key(stored_t<Key, Value> const &s)
+        {
+            return get_key(s.key);
+        }
+        template <typename t1, typename t2>
+        bool operator<(t1 const &lhs, t2 const &rhs)
+        {
+            return get_key(lhs) < get_key(rhs);
+        }
+        template <typename t1, typename t2>
+        struct support_equality
+        {
+            constexpr static bool value = std::is_convertible_v<decltype(get_key(std::declval<t1>()) == get_key(std::declval<t2>())), bool>;
+        };
+        template <typename t1, typename t2, std::enable_if_t<support_equality<t1, t2>::value, int> = 0>
+        bool operator==(t1 const &lhs, t2 const &rhs)
+        {
+            return get_key(lhs) == get_key(rhs);
+        }
+        template <typename t1, typename t2, std::enable_if_t<!support_equality<t1, t2>::value, int> = 0>
+        bool operator==(t1 const &lhs, t2 const &rhs)
+        {
+            return !(get_key(lhs) < get_key(rhs)) && !(get_key(rhs) < get_key(rhs));
+        }
+        template <typename t1, typename t2>
+        bool operator!=(t1 const&lhs, t2 const&rhs)
+        {
+            return !(lhs == rhs);
+        };
+        template <typename T>
+        auto &get_value(T &t)
+        {
+            return t;
+        }
+        template <typename T>
+        auto &get_value(T const &t)
+        {
+            return t;
+        }
+        template <typename Key, typename Value>
+        auto &get_value(stored_t<Key, Value> const &s)
+        {
+            return get_value(s.value);
+        }
+        template <typename Key, typename Value>
+        auto &get_value(stored_t<Key, Value> &s)
+        {
+            return get_value(s.value);
+        }
+
+        template <typename Key, typename Value>
+        struct value_traits
+        {
+            using type = stored_t<Key, Value>;
+            using key_type = Key;
+            using value_type = Value;
+        };
+        template <typename Key>
+        struct value_traits<Key, null_value_tag>
+        {
+            using type = Key;
+            using key_type = Key;
+            using value_type = Key;
+        };
+        template <typename Key, typename Value>
+        void assign_element(std::string &&str, detail::stored_t<Key, Value> &v)
+        {
+            using binary_tree_nm::assign_element;
+            std::string_view source = str;
+            std::size_t pos = 0;
+            auto key_input = read_until(source, pos, ',');
+            detail::force_read_char(source, pos, ',');
+            auto value_input = read_until(source, pos);
+            assign_element(std::move(key_input), v.key);
+            assign_element(std::move(value_input), v.value);
+        }
+    }
+    using detail::get_key;
+    using detail::get_value;
+    using detail::value_traits;
+
     using namespace std::literals;
 
     template <typename Key_t, typename Value_t = null_value_tag>
     class tree_adapter
     {
-        using tree_type = binary_tree<Key_t, Value_t>;
+        using element_type = typename value_traits<Key_t, Value_t>::type;
+        using tree_type = binary_tree<element_type>;
         std::optional<tree_type> tree;
         using key_type = typename value_traits<Key_t, Value_t>::key_type;
         using value_type = typename value_traits<Key_t, Value_t>::value_type;
@@ -54,7 +156,7 @@ namespace binary_tree_nm
         {
             if (tree)
                 throw tree_exists(__func__);
-            tree = binary_tree<Key_t, Value_t>();
+            tree = binary_tree<element_type>();
         }
         void DestroyBiTree()
         {
@@ -62,9 +164,9 @@ namespace binary_tree_nm
                 throw tree_not_exist(__func__);
             tree.reset();
         }
-        void CreateBiTree(std::string const &definition)
+        void CreateBiTree(std::string_view definition)
         {
-            auto generated_tree = tree_parse<left_first_t, Key_t, Value_t>(definition).get_binary_tree();
+            auto generated_tree = tree_parse<left_first_t, element_type>(definition).get_binary_tree();
             if (!generated_tree)
                 throw parse_failed(__func__);
             tree = generated_tree;
@@ -136,12 +238,17 @@ namespace binary_tree_nm
             throw precondition_failed_to_satisfy(__func__);
         }
         template <typename child_t, typename iter, typename dir_t = right_t>
-        void InsertChild(iter pos, tree_type tree, dir_t = dir_t{})
+        void InsertChild(iter pos, tree_type inserted, dir_t = dir_t{})
         {
-            auto replaced = tree->template replace_child<child_t>(pos, std::move(tree));
+            auto replaced = tree->template replace_child<child_t>(pos, std::move(inserted));
             auto farest = tree->template begin<inorder_t, dir_t>();
             auto empty = tree->template replace_child<dir_t>(farest, std::move(replaced));
             assert(empty.empty());
+        }
+
+        friend bool operator==(tree_adapter const&lhs, tree_adapter const&rhs)
+        {
+            return *lhs.tree == *rhs.tree;
         }
     };
 }

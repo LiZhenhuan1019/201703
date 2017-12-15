@@ -203,96 +203,13 @@ namespace binary_tree_nm
         }
     };
 
-    class null_value_tag;
-    namespace detail
-    {
-        template <typename Key, typename Value>
-        struct stored_t
-        {
-            Key key;
-            Value value;
-            friend std::ostream &operator<<(std::ostream &out, stored_t const &s)
-            {
-                out << s.key << " " << s.value;
-                return out;
-            }
-        };
-        template <typename T>
-        auto const &get_key(T const &t)
-        {
-            return t;
-        }
-        template <typename Key, typename Value>
-        auto const &get_key(stored_t<Key, Value> const &s)
-        {
-            return get_key(s.key);
-        }
-        template <typename t1, typename t2>
-        bool operator<(t1 const &lhs, t2 const &rhs)
-        {
-            return get_key(lhs) < get_key(rhs);
-        }
-        template <typename t1, typename t2>
-        struct support_equality
-        {
-            constexpr static bool value = std::is_convertible_v<decltype(get_key(std::declval<t1>()) == get_key(std::declval<t2>())), bool>;
-        };
-        template <typename t1, typename t2, std::enable_if_t<support_equality<t1, t2>::value, int> = 0>
-        bool operator==(t1 const &lhs, t2 const &rhs)
-        {
-            return get_key(lhs) == get_key(rhs);
-        }
-        template <typename t1, typename t2, std::enable_if_t<!support_equality<t1, t2>::value, int> = 0>
-        bool operator==(t1 const &lhs, t2 const &rhs)
-        {
-            return !(get_key(lhs) < get_key(rhs)) && !(get_key(rhs) < get_key(rhs));
-        }
-        template <typename T>
-        auto &get_value(T &t)
-        {
-            return t;
-        }
-        template <typename T>
-        auto &get_value(T const &t)
-        {
-            return t;
-        }
-        template <typename Key, typename Value>
-        auto &get_value(stored_t<Key, Value> const &s)
-        {
-            return get_value(s.value);
-        }
-        template <typename Key, typename Value>
-        auto &get_value(stored_t<Key, Value> &s)
-        {
-            return get_value(s.value);
-        }
-
-        template <typename Key, typename Value>
-        struct value_traits
-        {
-            using type = stored_t<Key, Value>;
-            using key_type = Key;
-            using value_type = Value;
-        };
-        template <typename Key>
-        struct value_traits<Key, null_value_tag>
-        {
-            using type = Key;
-            using key_type = Key;
-            using value_type = Key;
-        };
-    }
-    using detail::get_key;
-    using detail::get_value;
-    using detail::value_traits;
-    template <typename Key, typename Value = null_value_tag>
+    template <typename T>
     class binary_tree
     {
         using default_order = preorder_t;
         using default_direction = left_first_t;
     public:
-        using value_type = typename detail::value_traits<Key, Value>::type;
+        using value_type = T;
         using node_type = node<value_type>;
         using handler_type = std::unique_ptr<node_type>;
         using size_type = std::size_t;
