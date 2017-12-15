@@ -7,17 +7,21 @@
 
 namespace binary_tree_nm
 {
-    struct right_first;
-    struct left_first
+    struct right_first_t;
+    struct left_first_t
     {
-        using inverse = right_first;
+        using inverse = right_first_t;
     };
-    struct right_first
+    struct right_first_t
     {
-        using inverse = left_first;
+        using inverse = left_first_t;
     };
-    using left_child = left_first;
-    using right_child = right_first;
+    using left_t = left_first_t;
+    using right_t = right_first_t;
+    constexpr left_first_t left_first;
+    constexpr left_t left_child;
+    constexpr right_first_t right_first;
+    constexpr right_t right_child;
 
     template <typename T>
     struct node
@@ -41,7 +45,7 @@ namespace binary_tree_nm
     struct iterate_direction;
 
     template <>
-    struct iterate_direction<left_first>
+    struct iterate_direction<left_first_t>
     {
         ~iterate_direction() = default;
         template <typename T>
@@ -57,7 +61,7 @@ namespace binary_tree_nm
     };
 
     template <>
-    struct iterate_direction<right_first>
+    struct iterate_direction<right_first_t>
     {
         ~iterate_direction() = delete;
         template <typename T>
@@ -72,12 +76,32 @@ namespace binary_tree_nm
         }
     };
 
+    struct inorder_t
+    {
+        using inverse = inorder_t;
+    };
+    struct preorder_t;
+    struct postorder_t
+    {
+        using inverse = preorder_t;
+    };
+    struct preorder_t
+    {
+        using inverse = postorder_t;
+    };
+    constexpr inorder_t inorder;
+    constexpr preorder_t preorder;
+    constexpr postorder_t postorder;
+
+    template <typename T, typename order, typename dir>
+    struct order_template;
     template <typename T, typename dir>
-    struct inorder
+    struct order_template<T, inorder_t, dir>
     {
         using node_type = node<T>;
+        using order_type = inorder_t;
         using direction = iterate_direction<dir>;
-        using inverse_order = inorder<T, typename dir::inverse>;
+        using inverse_order = order_template<T, order_type::inverse, typename dir::inverse>;
         static node_type *begin(node_type *root)
         {
             assert(root);
@@ -106,13 +130,14 @@ namespace binary_tree_nm
     };
 
     template <typename T, typename dir>
-    struct postorder;
+    struct order_template<T, postorder_t, dir>;
     template <typename T, typename dir>
-    struct preorder
+    struct order_template<T, preorder_t, dir>
     {
         using node_type = node<T>;
+        using order_type = preorder_t;
         using direction = iterate_direction<dir>;
-        using inverse_order = postorder<T, typename dir::inverse>;
+        using inverse_order = order_template<T, order_type::inverse, typename dir::inverse>;
         static node_type *begin(node_type *root)
         {
             assert(root);
@@ -143,11 +168,12 @@ namespace binary_tree_nm
     };
 
     template <typename T, typename dir>
-    struct postorder
+    struct order_template<T, postorder_t, dir>
     {
         using node_type = node<T>;
+        using order_type = postorder_t;
         using direction = iterate_direction<dir>;
-        using inverse_order = preorder<T, typename dir::inverse>;
+        using inverse_order = order_template<T, order_type::inverse, typename dir::inverse>;
         static node_type *begin(node_type *root)
         {
             assert(root);
@@ -185,35 +211,88 @@ namespace binary_tree_nm
         {
             Key key;
             Value value;
-            friend bool operator<(stored_t const &lhs, stored_t const &rhs)
-            {
-                return lhs.key < rhs.key;
-            }
             friend std::ostream &operator<<(std::ostream &out, stored_t const &s)
             {
-                out << s.key <<" " << s.value;
+                out << s.key << " " << s.value;
                 return out;
             }
         };
+        template <typename T>
+        auto const &get_key(T const &t)
+        {
+            return t;
+        }
         template <typename Key, typename Value>
-        struct value_t
+        auto const &get_key(stored_t<Key, Value> const &s)
+        {
+            return get_key(s.key);
+        }
+        template <typename t1, typename t2>
+        bool operator<(t1 const &lhs, t2 const &rhs)
+        {
+            return get_key(lhs) < get_key(rhs);
+        }
+        template <typename t1, typename t2>
+        struct support_equality
+        {
+            constexpr static bool value = std::is_convertible_v<decltype(get_key(std::declval<t1>()) == get_key(std::declval<t2>())), bool>;
+        };
+        template <typename t1, typename t2, std::enable_if_t<support_equality<t1, t2>::value, int> = 0>
+        bool operator==(t1 const &lhs, t2 const &rhs)
+        {
+            return get_key(lhs) == get_key(rhs);
+        }
+        template <typename t1, typename t2, std::enable_if_t<!support_equality<t1, t2>::value, int> = 0>
+        bool operator==(t1 const &lhs, t2 const &rhs)
+        {
+            return !(get_key(lhs) < get_key(rhs)) && !(get_key(rhs) < get_key(rhs));
+        }
+        template <typename T>
+        auto &get_value(T &t)
+        {
+            return t;
+        }
+        template <typename T>
+        auto &get_value(T const &t)
+        {
+            return t;
+        }
+        template <typename Key, typename Value>
+        auto &get_value(stored_t<Key, Value> const &s)
+        {
+            return get_value(s.value);
+        }
+        template <typename Key, typename Value>
+        auto &get_value(stored_t<Key, Value> &s)
+        {
+            return get_value(s.value);
+        }
+
+        template <typename Key, typename Value>
+        struct value_traits
         {
             using type = stored_t<Key, Value>;
+            using key_type = Key;
+            using value_type = Value;
         };
         template <typename Key>
-        struct value_t<Key, null_value_tag>
+        struct value_traits<Key, null_value_tag>
         {
             using type = Key;
+            using key_type = Key;
+            using value_type = Key;
         };
     }
+    using detail::get_key;
+    using detail::get_value;
+    using detail::value_traits;
     template <typename Key, typename Value = null_value_tag>
     class binary_tree
     {
-        template <typename U, typename dir>
-        using default_order = inorder<U, dir>;
-        using default_direction = left_first;
+        using default_order = preorder_t;
+        using default_direction = left_first_t;
     public:
-        using value_type = typename detail::value_t<Key, Value>::type;
+        using value_type = typename detail::value_traits<Key, Value>::type;
         using node_type = node<value_type>;
         using handler_type = std::unique_ptr<node_type>;
         using size_type = std::size_t;
@@ -225,22 +304,23 @@ namespace binary_tree_nm
             using value_type = binary_tree::value_type;
             using pointer = value_type *;
             using reference = value_type &;
-            using iterator_categary = std::bidirectional_iterator_tag;
-
+            using iterator_category = std::bidirectional_iterator_tag;
         };
         explicit binary_tree(handler_type root)
             : root_(std::move(root))
         {
+            if (root_)
+                root_->parent = nullptr;
         }
     public:
 
-        template <template <typename...> class, typename>
+        template <typename, typename>
         class iterator;
 
-        template <template <typename...> class default_order, typename default_direction>
+        template <typename default_order, typename default_direction>
         class const_iterator : public base_iter
         {
-            template <template <typename...> class, typename>
+            template <typename, typename>
             friend
             class iterator;
             friend class binary_tree;
@@ -253,7 +333,8 @@ namespace binary_tree_nm
             const binary_tree *tree;
             node_type *node;
         public:
-            template <template <typename ...> class order = default_order, typename direction = default_direction>
+
+            template <typename order, typename direction>
             const_iterator(const_iterator<order, direction> const &src)
                 :tree(src.tree), node(src.node)
             {
@@ -288,20 +369,20 @@ namespace binary_tree_nm
                 auto iter = *this;
                 return this->previous(), iter;
             }
-            template <template <typename...> class order = default_order, typename direction = default_direction>
+            template <typename order = default_order, typename direction = default_direction>
             void next()
             {
                 assert(node);
-                node = order<value_type, direction>::next(node);
+                node = order_template<value_type, order, direction>::next(node);
             }
-            template <template <typename...> class order = default_order, typename direction = default_direction>
+            template <typename order = default_order, typename direction = default_direction>
             void previous()
             {
                 if (node == nullptr)
-                    node = order<value_type, direction>::inverse_order::begin(tree->root_.get());
+                    node = order_template<value_type, order, direction>::inverse_order::begin(tree->root_.get());
                 else
                 {
-                    auto pre = order<value_type, direction>::inverse_order::next(node);
+                    auto pre = order_template<value_type, order, direction>::inverse_order::next(node);
                     if (pre != nullptr)
                         node = pre;
                 }
@@ -323,16 +404,16 @@ namespace binary_tree_nm
                 assert(node && node->parent);
                 return const_iterator(tree, node->parent);
             }
-            template <template <typename ...> class order = default_order, typename direction = default_direction>
+            template <typename order = default_order, typename direction = default_direction>
             auto change() const
             {
                 return const_iterator<order, direction>(*this);
             }
-            template <typename iter1, typename iter2>
+            template <typename iter1, typename iter2, typename>
             friend bool operator==(iter1 const &, iter2 const &);
         };
 
-        template <template <typename...> class default_order, typename default_direction>
+        template <typename default_order, typename default_direction>
         class iterator : public base_iter
         {
             friend class binary_tree;
@@ -345,12 +426,12 @@ namespace binary_tree_nm
             binary_tree *tree;
             node_type *node;
         public:
-            template <template <typename ...> class order = default_order, typename direction = default_direction>
+            template <typename order = default_order, typename direction = default_direction>
             iterator(iterator<order, direction> const &src)
                 :tree(src.tree), node(src.node)
             {
             }
-            template <template <typename ...> class order, typename direction>
+            template <typename order, typename direction>
             operator const_iterator<order, direction>()
             {
                 return const_iterator<order, direction>(tree, node);
@@ -385,20 +466,20 @@ namespace binary_tree_nm
                 auto iter = *this;
                 return this->previous(), iter;
             }
-            template <template <typename...> class order = default_order, typename direction = default_direction>
+            template <typename order = default_order, typename direction = default_direction>
             void next()
             {
                 assert(node);
-                node = order<value_type, direction>::next(node);
+                node = order_template<value_type, order, direction>::next(node);
             }
-            template <template <typename...> class order = default_order, typename direction = default_direction>
+            template <typename order = default_order, typename direction = default_direction>
             void previous()
             {
                 if (node == nullptr)
-                    node = order<value_type, direction>::inverse_order::begin(tree->root_.get());
+                    node = order_template<value_type, order, direction>::inverse_order::begin(tree->root_.get());
                 else
                 {
-                    auto pre = order<value_type, direction>::inverse_order::next(node);
+                    auto pre = order_template<value_type, order, direction>::inverse_order::next(node);
                     if (pre != nullptr)
                         node = pre;
                 }
@@ -420,13 +501,13 @@ namespace binary_tree_nm
                 assert(node && node->parent);
                 return iterator(tree, node->parent);
             }
-            template <template <typename ...> class order = default_order, typename direction = default_direction>
+            template <typename order = default_order, typename direction = default_direction>
             auto change() const
             {
                 return iterator<order, direction>(*this);
             }
 
-            template <typename iter1, typename iter2>
+            template <typename iter1, typename iter2, typename>
             friend bool operator==(iter1 const &, iter2 const &);
         };
 
@@ -435,7 +516,7 @@ namespace binary_tree_nm
         binary_tree(binary_tree const &src)
         {
             set_root(*src.root());
-            for (auto src_iter = src.begin<preorder>(), dest_iter = cbegin<preorder>(); src_iter != src.end(); ++src_iter, ++dest_iter)
+            for (auto src_iter = src.begin<preorder_t>(), dest_iter = cbegin<preorder_t>(); src_iter != src.end(); ++src_iter, ++dest_iter)
             {
                 if (src_iter.first_child())
                     new_child<default_direction>(dest_iter, *src_iter.first_child());
@@ -450,22 +531,22 @@ namespace binary_tree_nm
             return *this;
         }
 
-        template <template <typename, typename> class order = default_order, typename direction = default_direction>
+        template <typename order = default_order, typename direction = default_direction>
         auto begin()
         {
             if (!root_)
                 return end<order, direction>();
-            return get_iter<order, direction>(order<value_type , direction>::begin(root_.get()));
+            return get_iter<order, direction>(order_template<value_type, order, direction>::begin(root_.get()));
         }
 
-        template <template <typename, typename> class order = default_order, typename direction = default_direction>
+        template <typename order = default_order, typename direction = default_direction>
         auto begin() const
         {
             if (!root_)
                 return end<order, direction>();
-            return get_const_iter<order, direction>(order<value_type , direction>::begin(root_.get()));
+            return get_const_iter<order, direction>(order_template<value_type, order, direction>::begin(root_.get()));
         }
-        template <template <typename, typename> class order = default_order, typename direction = default_direction>
+        template <typename order = default_order, typename direction = default_direction>
         auto cbegin() const
         {
             if (!root_)
@@ -473,28 +554,28 @@ namespace binary_tree_nm
             return begin<order, direction>();
         }
 
-        template <template <typename, typename> class order = default_order, typename direction = default_direction>
+        template <typename order = default_order, typename direction = default_direction>
         auto end()
         {
             return get_iter<order, direction>(nullptr);
         }
-        template <template <typename, typename> class order = default_order, typename direction = default_direction>
+        template <typename order = default_order, typename direction = default_direction>
         auto end() const
         {
             return get_const_iter<order, direction>(nullptr);
         }
-        template <template <typename, typename> class order = default_order, typename direction = default_direction>
+        template <typename order = default_order, typename direction = default_direction>
         auto cend() const
         {
             return get_const_iter<order, direction>(nullptr);
         }
 
-        template <template <typename, typename> class order = default_order, typename direction = default_direction>
+        template <typename order = default_order, typename direction = default_direction>
         auto root()
         {
             return get_iter<order, direction>(root_.get());
         }
-        template <template <typename, typename> class order = default_order, typename direction = default_direction>
+        template <typename order = default_order, typename direction = default_direction>
         auto root() const
         {
             return get_const_iter<order, direction>(root_.get());
@@ -517,7 +598,8 @@ namespace binary_tree_nm
         {
             if (subtree_root == end())
                 return 0;
-            return std::max(subtree_depth(subtree_root.first_child()), subtree_depth(subtree_root.second_child()));
+            auto i = std::max(subtree_depth(subtree_root.first_child()), subtree_depth(subtree_root.second_child())) + 1;
+            return i;
         }
 
         template <typename iter>
@@ -528,8 +610,11 @@ namespace binary_tree_nm
                 handler = &root_;
             else
                 handler = &get_handler(replaced.node);
+            auto parent = (*handler)->parent;
             auto returned = std::move(*handler);
             *handler = std::move(new_tree.root_);
+            if (*handler)
+                (*handler)->parent = parent;
             return binary_tree(returned);
         }
 
@@ -552,17 +637,19 @@ namespace binary_tree_nm
             return iter(this, child.get());
         }
         template <typename direction, typename iter>
-        iter replace_child(iter parent, binary_tree &&tree)
+        binary_tree replace_child(iter parent, binary_tree &&tree)
         {
             auto &child = iterate_direction<direction>::first_child(parent.node);
+            auto replaced = std::move(child);
             child = std::move(tree.root_);
-            child->parent = parent.node;
-            return iter(this, child.get());
+            if (child)
+                child->parent = parent.node;
+            return binary_tree(std::move(replaced));
         }
 
         friend bool operator==(binary_tree const &lhs, binary_tree const &rhs)
         {
-            auto left_iter = lhs.template begin<preorder>(), right_iter = rhs.template begin<preorder>();
+            auto left_iter = lhs.template begin<preorder_t>(), right_iter = rhs.template begin<preorder_t>();
             for (; left_iter != lhs.end() && right_iter != rhs.end(); ++left_iter, ++right_iter)
             {
                 if (*left_iter != *right_iter)
@@ -572,12 +659,12 @@ namespace binary_tree_nm
         }
     private:
 
-        template <template <typename...> class default_order, typename default_direction>
+        template <typename default_order, typename default_direction>
         auto get_iter(node_type *p)
         {
             return iterator<default_order, default_direction>{this, p};
         }
-        template <template <typename...> class default_order, typename default_direction>
+        template <typename default_order, typename default_direction>
         auto get_const_iter(node_type *p) const
         {
             return const_iterator<default_order, default_direction>{this, p};
@@ -596,7 +683,7 @@ namespace binary_tree_nm
         handler_type root_;
     };
 
-    template <typename iter1, typename iter2>
+    template <typename iter1, typename iter2, typename = typename iter1::iterator_category>
     bool operator==(iter1 const &lhs, iter2 const &rhs)
     {
         return lhs.node == rhs.node;

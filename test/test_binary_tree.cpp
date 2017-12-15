@@ -11,21 +11,20 @@ void test_binary_tree()
     assert(*root == "root");
     assert(++root == tree.end());
     assert(--root == tree.begin());
-    auto left = tree.new_child<left_child>(root, "left child");
+    auto left = tree.new_child<left_t>(root, "left child");
     assert(*left == "left child");
     assert(*root.first_child() == "left child");
-    auto right = tree.new_child<right_child>(root, "right child");
+    auto right = tree.new_child<right_t>(root, "right child");
     assert(*right == "right child");
     assert(*root.second_child() == "right child");
-    auto left_left = tree.new_child<left_child>(left, "left left");
+    auto left_left = tree.new_child<left_t>(left, "left left");
     assert(*left_left == "left left");
     assert(*left.first_child() == "left left");
-    auto left_right = tree.new_child<right_child>(left, "left right");
+    auto left_right = tree.new_child<right_t>(left, "left right");
     assert(*left_right == "left right");
     assert(*left.second_child() == "left right");
     {
-        auto inorder_iter = root;
-        inorder_iter = tree.begin<inorder>();
+        auto inorder_iter = tree.begin<inorder_t>();
         assert(inorder_iter == left_left);
         assert(++inorder_iter == left);
         assert(++inorder_iter == left_right);
@@ -39,7 +38,7 @@ void test_binary_tree()
         assert(--inorder_iter == left_left);
     }
     {
-        auto preorder_iter = tree.begin<preorder>();
+        auto preorder_iter = tree.begin<preorder_t>();
         assert(preorder_iter == root);
         assert(++preorder_iter == left);
         assert(++preorder_iter == left_left);
@@ -53,7 +52,7 @@ void test_binary_tree()
         assert(--preorder_iter == root);
     }
     {
-        auto postorder_iter = tree.begin<postorder>();
+        auto postorder_iter = tree.begin<postorder_t>();
         assert(postorder_iter == left_left);
         assert(++postorder_iter == left_right);
         assert(++postorder_iter == left);

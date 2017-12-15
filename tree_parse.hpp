@@ -138,7 +138,7 @@ namespace binary_tree_nm
                 ++pos;
         }
 
-        template <typename Value_t = value_type, typename Key_t = Key, typename std::enable_if<std::is_same_v<Value_t, key_t>, int>::type = 0>
+        template <typename Value_t = value_type, typename Key_t = Key, typename std::enable_if<std::is_same_v<Value_t, Key_t>, int>::type = 0>
         value_type read_element()
         {
             std::string input;
