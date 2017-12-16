@@ -8,6 +8,7 @@
 #include <queue>
 #include "binary_tree.hpp"
 #include "tree_parse.hpp"
+#include "save_load.hpp"
 
 namespace binary_tree_nm
 {
@@ -21,7 +22,8 @@ namespace binary_tree_nm
             Value value;
             friend std::ostream &operator<<(std::ostream &out, stored_t const &s)
             {
-                out << s.key << " " << s.value;
+                escape(out, s.key, ',', '\\') << ",";
+                escape(out, s.value, ',', '\\');
                 return out;
             }
         };
@@ -56,7 +58,7 @@ namespace binary_tree_nm
             return !(get_key(lhs) < get_key(rhs)) && !(get_key(rhs) < get_key(rhs));
         }
         template <typename t1, typename t2>
-        bool operator!=(t1 const&lhs, t2 const&rhs)
+        bool operator!=(t1 const &lhs, t2 const &rhs)
         {
             return !(lhs == rhs);
         };
@@ -100,9 +102,9 @@ namespace binary_tree_nm
         {
             using binary_tree_nm::assign_element;
             std::istringstream source(str);
-            auto key_input = detail::read_until(source, ',');
+            auto key_input = detail::read_until(source, true, ',');
             detail::force_read_char(source, ',');
-            auto value_input = detail::read_until(source);
+            auto value_input = detail::read_until(source, true);
             assign_element(std::move(key_input), v.key);
             assign_element(std::move(value_input), v.value);
         }
@@ -171,7 +173,7 @@ namespace binary_tree_nm
                 throw parse_failed(__func__);
             tree = generated_tree;
         }
-        void CreateBiTree(std::string const&string)
+        void CreateBiTree(std::string const &string)
         {
             std::istringstream stream(string);
             CreateBiTree(stream);
@@ -258,7 +260,7 @@ namespace binary_tree_nm
         template <typename Callable, typename order_t, typename dir_t = left_first_t>
         void Traverse(Callable callable, order_t order, dir_t = dir_t{})
         {
-            for(auto iter = tree->template begin<order_t, dir_t>(); iter != tree->template end<order_t, dir_t>(); ++iter)
+            for (auto iter = tree->template begin<order_t, dir_t>(); iter != tree->template end<order_t, dir_t>(); ++iter)
                 callable(*iter);
         }
         template <typename Callable, typename dir_t = left_first_t>
@@ -266,18 +268,18 @@ namespace binary_tree_nm
         {
             auto iter = tree->template root<preorder_t, dir_t>();
             std::queue<decltype(iter)> queue{iter};
-            while(!queue.empty())
+            while (!queue.empty())
             {
                 iter = queue.back(), queue.pop();
-                if(iter.template first_child<dir_t>())
+                if (iter.template first_child<dir_t>())
                     queue.push(iter.template first_child<dir_t>());
-                if(iter.template second_child<dir_t>())
+                if (iter.template second_child<dir_t>())
                     queue.push(iter.template second_child<dir_t>());
                 callable(*iter);
             }
         }
 
-        friend bool operator==(tree_adapter const&lhs, tree_adapter const&rhs)
+        friend bool operator==(tree_adapter const &lhs, tree_adapter const &rhs)
         {
             return *lhs.tree == *rhs.tree;
         }

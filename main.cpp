@@ -1,6 +1,7 @@
 #include <iostream>
 #include "binary_tree.hpp"
 #include "tree_adapter.hpp"
+#include "save_load.hpp"
 #include "test/test_binary_tree.hpp"
 #include "test/test_tree_parse.hpp"
 #include "test/test_tree_adapter.hpp"

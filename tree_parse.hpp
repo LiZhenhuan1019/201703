@@ -52,7 +52,7 @@ namespace binary_tree_nm
     template <typename value>
     void assign_element(std::string str, value &v)
     {
-        std::istringstream stream(std::move(str));
+        std::istringstream stream(str);
         stream >> v;
         if (!stream)
             throw parse_failed();
@@ -92,18 +92,23 @@ namespace binary_tree_nm
                 auto pos = in.tellg();
                 in.get();
                 if (((in.peek() == escaped) || ...))
-                return;
+                    return;
                 in.seekg(pos);
             }
         }
         template <typename ...Stops>
-        std::string read_until(std::istream &in, Stops ...stop)
+        std::string read_until(std::istream &in, bool skip_backslash, Stops ...stop)
         {
             std::string str;
             while (in && ((in.peek() != stop) && ...))
             {
-                unescape(in, stop...);
-                str.push_back((char)in.get());
+                if(skip_backslash)
+                    unescape(in, '\\', stop...);
+                else
+                    unescape(in, stop...);
+                char c = in.get();
+                if (in)
+                    str.push_back(c);
             }
             return str;
         }
@@ -180,10 +185,10 @@ namespace binary_tree_nm
             std::string input;
             if (detail::read_char(source, '('))
             {
-                input = detail::read_until(source, ')');
+                input = detail::read_until(source, false, ')');
                 detail::force_read_char(source, ')');
             } else
-                input = detail::read_until(source, ',', ']');
+                input = detail::read_until(source, false, ',', ']');
             value_type result;
             assign_element(std::move(input), result);
             return result;

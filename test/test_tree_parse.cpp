@@ -4,15 +4,16 @@
 #include "test_tree_parse.hpp"
 #include "../tree_parse.hpp"
 #include "../tree_adapter.hpp"
+#include "../save_load.hpp"
 
 void test_tree_parse()
 {
     using namespace binary_tree_nm;
     using namespace std::literals;
-    std::istringstream stream(R"~( [ (\,, 1), ([, 2), (null,3), null, null, null, (],4), null, null] )~"s);
-    tree_parse<left_first_t, detail::stored_t<std::string, int>> parse(stream);
-    auto tree = parse.get_binary_tree();
-    auto root = tree->root<preorder_t>();
+    std::istringstream istream(R"~( [ (\,, 1), ([, 2), (\\,3), null, null, null, (\),4), null, null] )~"s);
+    tree_parse<left_first_t, detail::stored_t<std::string, int>> parse(istream);
+    auto tree = parse.get_binary_tree().value();
+    auto root = tree.root<preorder_t>();
     auto iter = root;
     assert(root->key == ",");
     assert(root->value == 1);
@@ -20,9 +21,16 @@ void test_tree_parse()
     assert(iter->key == "[");
     assert(iter->value== 2);
     ++iter;
-    assert(iter->key == "null");
+    assert(iter->key == "\\");
     assert(iter->value== 3);
     ++iter;
-    assert(iter->key == "]");
+    assert(iter->key == ")");
     assert(iter->value== 4);
+    std::ostringstream ostream;
+    ostream << tree;
+    auto output = ostream.str();
+    std::istringstream new_istream(output);
+    decltype(tree) new_tree;
+    new_istream>>new_tree;
+    assert(tree == new_tree);
 }
