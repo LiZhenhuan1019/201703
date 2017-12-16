@@ -96,14 +96,13 @@ namespace binary_tree_nm
             using value_type = Key;
         };
         template <typename Key, typename Value>
-        void assign_element(std::string &&str, detail::stored_t<Key, Value> &v)
+        void assign_element(std::string str, detail::stored_t<Key, Value> &v)
         {
             using binary_tree_nm::assign_element;
-            std::string_view source = str;
-            std::size_t pos = 0;
-            auto key_input = read_until(source, pos, ',');
-            detail::force_read_char(source, pos, ',');
-            auto value_input = read_until(source, pos);
+            std::istringstream source(str);
+            auto key_input = detail::read_until(source, ',');
+            detail::force_read_char(source, ',');
+            auto value_input = detail::read_until(source);
             assign_element(std::move(key_input), v.key);
             assign_element(std::move(value_input), v.value);
         }
@@ -165,12 +164,17 @@ namespace binary_tree_nm
                 throw tree_not_exist(__func__);
             tree.reset();
         }
-        void CreateBiTree(std::string_view definition)
+        void CreateBiTree(std::istream &definition)
         {
             auto generated_tree = tree_parse<left_first_t, element_type>(definition).get_binary_tree();
             if (!generated_tree)
                 throw parse_failed(__func__);
             tree = generated_tree;
+        }
+        void CreateBiTree(std::string const&string)
+        {
+            std::istringstream stream(string);
+            CreateBiTree(stream);
         }
         void ClearBiTree()
         {

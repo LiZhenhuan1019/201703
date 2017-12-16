@@ -4,8 +4,9 @@
 void test_tree_adapter()
 {
     using namespace binary_tree_nm;
+    using namespace std::literals;
     tree_adapter<std::string, int> adapter;
-    std::string_view definition= R"~([(root,1), (left,2), (left left,3), null, null, null , (right,4), null, (right right, 5), null, null ])~";
+    std::string definition(R"~([(root,1), (left,2), (left left,3), null, null, null , (right,4), null, (right right, 5), null, null ])~"s);
     adapter.InitBiTree();
     adapter.DestroyBiTree();
     adapter.CreateBiTree(definition);
@@ -25,7 +26,8 @@ void test_tree_adapter()
     assert(get_value(*adapter.Sibling<right_t>("left")) == 4);
     assert(get_value(*adapter.Sibling<left_t>("right")) == 2);
     auto right_node = adapter.Child<right_t>("root");
-    adapter.InsertChild<right_t>(right_node, tree_parse<left_first_t, detail::stored_t<std::string, int>>(definition).get_binary_tree().value());
+    std::istringstream stream(definition);
+    adapter.InsertChild<right_t>(right_node, tree_parse<left_first_t, detail::stored_t<std::string, int>>(stream).get_binary_tree().value());
     decltype(adapter) equals;
     equals.CreateBiTree(R"~([(root, 1), (left, 2),(left left,3),null,null,null,(right,4),null, (root, 1), (left,2),(left left,3),null,null,null,(right,4),null,(right right, 5),null, (right right,5),null,null])~");
     assert(adapter == equals);

@@ -50,7 +50,7 @@ namespace binary_tree_nm
     }
 
     template <typename value>
-    void assign_element(std::string &&str, value &v)
+    void assign_element(std::string str, value &v)
     {
         std::istringstream stream(std::move(str));
         stream >> v;
@@ -58,7 +58,7 @@ namespace binary_tree_nm
             throw parse_failed();
     }
     template <>
-    inline void assign_element(std::string &&str, std::string &v)
+    inline void assign_element(std::string str, std::string &v)
     {
         v = std::move(str);
     }
@@ -66,37 +66,57 @@ namespace binary_tree_nm
     namespace detail
     {
 
-        template <typename ...Stops>
-        std::string read_until(std::string_view source, std::size_t &pos, Stops ...stop)
+        inline void eat_space(std::istream &in)
         {
-            std::string str;
-            while (pos < source.size() && ((source[pos] != stop) && ...))
-            {
-                if (source[pos] == '\\' && pos + 1 < source.size() && ((source[pos + 1] == stop) || ...))
-                    ++pos;
-                if (pos == source.size())
-                    throw unexpected_end();
-                str.push_back(source[pos++]);
-            }
-            return str;
+            while (in && std::isspace(in.peek()))
+                in.get();
         }
-        inline void eat_blank(std::string_view source, std::size_t &pos)
+        inline bool read_char(std::istream &in, char c)
         {
-            while (pos < source.size() && std::isblank(source[pos]))
-                ++pos;
-        }
-        inline bool read_char(std::string_view source, std::size_t &pos, char c)
-        {
-            eat_blank(source, pos);
-            if (pos < source.size() && source[pos] == c)
-                return ++pos, true;
+            eat_space(in);
+            if (in && in.peek() == c)
+                return in.get(), true;
             else
                 return false;
         }
-        inline void force_read_char(std::string_view source, std::size_t &pos, char c)
+        inline void force_read_char(std::istream &in, char c)
         {
-            if (!read_char(source, pos, c))
+            if (!read_char(in, c))
                 throw expect_failed(std::string() + c);
+        }
+        template <typename ...Escaped>
+        void unescape(std::istream &in, Escaped ...escaped)
+        {
+            if (in.peek() == '\\')
+            {
+                auto pos = in.tellg();
+                in.get();
+                if (((in.peek() == escaped) || ...))
+                return;
+                in.seekg(pos);
+            }
+        }
+        template <typename ...Stops>
+        std::string read_until(std::istream &in, Stops ...stop)
+        {
+            std::string str;
+            while (in && ((in.peek() != stop) && ...))
+            {
+                unescape(in, stop...);
+                str.push_back((char)in.get());
+            }
+            return str;
+        }
+        inline bool read_word(std::istream &in, std::string_view word)
+        {
+            auto recover = in.tellg();
+            detail::eat_space(in);
+            auto pos = 0;
+            while (in && in.get() == word[pos])
+                if (++pos == word.size())
+                    return true;
+            in.seekg(recover);
+            return false;
         }
     }
 
@@ -105,19 +125,18 @@ namespace binary_tree_nm
     {
         using tree_type = binary_tree<T>;
         using value_type = typename tree_type::value_type;
-        std::string_view source;
-        std::size_t pos = 0;
+        std::istream &source;
 
     public:
-        tree_parse(std::string_view str)
-            : source(str)
+        explicit tree_parse(std::istream &in)
+            : source(in)
         {
         }
         std::optional<tree_type> get_binary_tree()
         {
-            detail::force_read_char(source, pos, '[');
+            detail::force_read_char(source, '[');
             auto _ = detail::final_call{[=]
-                                        { detail::force_read_char(source, pos, ']'); }};
+                                        { detail::force_read_char(source, ']'); }};
             if (auto element = get_element())
             {
                 auto tree = get_subtree(std::move(element.value()));
@@ -138,7 +157,7 @@ namespace binary_tree_nm
         template <typename dir>
         void fill_child(tree_type &tree)
         {
-            detail::force_read_char(source, pos, ',');
+            detail::force_read_char(source, ',');
             if (auto element = get_element())
             {
                 tree.template replace_child<dir>(tree.root(), get_subtree(std::move(element.value())));
@@ -153,31 +172,18 @@ namespace binary_tree_nm
         }
         bool is_null()
         {
-            using namespace std::literals;
-            return read_word("null");
-        }
-        bool read_word(std::string_view word)
-        {
-            auto recover = pos;
-            detail::eat_blank(source, pos);
-            std::size_t begin_pos = pos;
-            while (pos < source.size() && std::isalpha(source[pos]))
-                ++pos;
-            if (std::string_view(source.data() + begin_pos, pos - begin_pos) == word)
-                return true;
-            pos = recover;
-            return false;
+            return detail::read_word(source, "null");
         }
 
         value_type read_element()
         {
             std::string input;
-            if (detail::read_char(source, pos, '('))
+            if (detail::read_char(source, '('))
             {
-                input = detail::read_until(source, pos, ')');
-                detail::force_read_char(source, pos, ')');
+                input = detail::read_until(source, ')');
+                detail::force_read_char(source, ')');
             } else
-                input = detail::read_until(source, pos, ',', ']');
+                input = detail::read_until(source, ',', ']');
             value_type result;
             assign_element(std::move(input), result);
             return result;
