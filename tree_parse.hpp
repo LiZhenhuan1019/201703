@@ -72,7 +72,7 @@ namespace binary_tree_nm
             std::string str;
             while (pos < source.size() && ((source[pos] != stop) && ...))
             {
-                if (source[pos] == '\\')
+                if (source[pos] == '\\' && pos + 1 < source.size() && ((source[pos + 1] == stop) || ...))
                     ++pos;
                 if (pos == source.size())
                     throw unexpected_end();
