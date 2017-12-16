@@ -102,7 +102,7 @@ namespace binary_tree_nm
             std::string str;
             while (in && ((in.peek() != stop) && ...))
             {
-                if(skip_backslash)
+                if (skip_backslash)
                     unescape(in, '\\', stop...);
                 else
                     unescape(in, stop...);

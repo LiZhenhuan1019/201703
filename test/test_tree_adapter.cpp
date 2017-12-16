@@ -29,7 +29,8 @@ void test_tree_adapter()
     std::istringstream stream(definition);
     adapter.InsertChild<right_t>(right_node, tree_parse<left_first_t, detail::stored_t<std::string, int>>(stream).get_binary_tree().value());
     decltype(adapter) equals;
-    equals.CreateBiTree(R"~([(root, 1), (left, 2),(left left,3),null,null,null,(right,4),null, (root, 1), (left,2),(left left,3),null,null,null,(right,4),null,(right right, 5),null, (right right,5),null,null])~");
+    equals.CreateBiTree(
+        R"~([(root, 1), (left, 2),(left left,3),null,null,null,(right,4),null, (root, 1), (left,2),(left left,3),null,null,null,(right,4),null,(right right, 5),null, (right right,5),null,null])~");
     assert(adapter == equals);
     auto parent_of_replaced = adapter.Child("right", right_child, inorder, right_first);
     assert(get_key(*parent_of_replaced) == "right right");

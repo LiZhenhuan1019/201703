@@ -1,10 +1,8 @@
 #include <string>
-#include <cassert>
 #include <sstream>
 #include "test_tree_parse.hpp"
 #include "../tree_parse.hpp"
 #include "../tree_adapter.hpp"
-#include "../save_load.hpp"
 
 void test_tree_parse()
 {
@@ -19,18 +17,18 @@ void test_tree_parse()
     assert(root->value == 1);
     ++iter;
     assert(iter->key == "[");
-    assert(iter->value== 2);
+    assert(iter->value == 2);
     ++iter;
     assert(iter->key == "\\");
-    assert(iter->value== 3);
+    assert(iter->value == 3);
     ++iter;
     assert(iter->key == ")");
-    assert(iter->value== 4);
+    assert(iter->value == 4);
     std::ostringstream ostream;
     ostream << tree;
     auto output = ostream.str();
     std::istringstream new_istream(output);
     decltype(tree) new_tree;
-    new_istream>>new_tree;
+    new_istream >> new_tree;
     assert(tree == new_tree);
 }
