@@ -271,9 +271,9 @@ namespace binary_tree_nm
                 print_error();
         }
 
-        void add_list()
+        void add_tree()
         {
-            std::cout << "Please enter the name of the list to add.\n";
+            std::cout << "Please enter the name of the tree to add.\n";
             auto name = input_line<std::string>();
             auto iter = trees.find(name);
             if (iter == trees.end())
@@ -284,9 +284,9 @@ namespace binary_tree_nm
             print_ok();
         }
 
-        void select_list()
+        void select_tree()
         {
-            std::cout << "Please enter the name of list to select.\n";
+            std::cout << "Please enter the name of tree to select.\n";
             auto name = input_line<std::string>();
             auto iter = trees.find(name);
             if (iter == trees.end())
@@ -297,11 +297,11 @@ namespace binary_tree_nm
             print_error();
         }
 
-        void remove_list()
+        void remove_tree()
         {
             if (trees.size() == 1)
                 print_error();
-            std::cout << "Please enter the name of list to remove.\n";
+            std::cout << "Please enter the name of tree to remove.\n";
             auto name = input_line<std::string>();
             auto iter = trees.find(name);
             if (iter == trees.end())
@@ -316,7 +316,7 @@ namespace binary_tree_nm
 
         void print_menu()
         {
-            std::cout << "Menu for linear list sample\n";
+            std::cout << "Menu for binary tree sample\n";
             std::cout << "---------------------------\n";
             for (auto i = 0u; i < commands.size(); ++i)
             {
@@ -470,9 +470,9 @@ namespace binary_tree_nm
                                                     std::pair{&console_ui::levelorder_iterate, "LevelOrderIterate"},
                                                     std::pair{&console_ui::save, "Save"},
                                                     std::pair{&console_ui::load, "Load"},
-                                                    std::pair{&console_ui::add_list, "AddTree"},
-                                                    std::pair{&console_ui::select_list, "SelectTree"},
-                                                    std::pair{&console_ui::remove_list, "RemoveTree"}
+                                                    std::pair{&console_ui::add_tree, "AddTree"},
+                                                    std::pair{&console_ui::select_tree, "SelectTree"},
+                                                    std::pair{&console_ui::remove_tree, "RemoveTree"}
         );
         inline static const std::string save_file_name = "data.save";
 
