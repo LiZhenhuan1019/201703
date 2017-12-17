@@ -607,7 +607,7 @@ namespace binary_tree_nm
     {
         return lhs.node == rhs.node;
     }
-    template <typename iter1, typename iter2>
+    template <typename iter1, typename iter2, typename = typename iter1::iterator_category>
     bool operator!=(iter1 const &lhs, iter2 const &rhs)
     {
         return !(lhs == rhs);

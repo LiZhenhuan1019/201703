@@ -116,7 +116,7 @@ namespace binary_tree_nm
         {
             auto recover = in.tellg();
             detail::eat_space(in);
-            auto pos = 0;
+            std::size_t pos = 0;
             while (in && in.get() == word[pos])
                 if (++pos == word.size())
                     return true;

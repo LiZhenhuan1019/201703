@@ -61,7 +61,7 @@ namespace binary_tree_nm
         bool operator!=(t1 const &lhs, t2 const &rhs)
         {
             return !(lhs == rhs);
-        };
+        }
         template <typename T>
         auto &get_value(T &t)
         {
