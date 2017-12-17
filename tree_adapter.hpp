@@ -118,42 +118,49 @@ namespace binary_tree_nm
     template <typename Key_t, typename Value_t = null_value_tag>
     class tree_adapter
     {
+    public:
         using element_type = typename value_traits<Key_t, Value_t>::type;
         using tree_type = binary_tree<element_type>;
-        std::optional<tree_type> tree;
         using key_type = typename value_traits<Key_t, Value_t>::key_type;
         using value_type = typename value_traits<Key_t, Value_t>::value_type;
 
+    private:
+        std::optional<tree_type> tree;
+
+        tree_adapter(tree_type &&tree)
+            :tree(std::move(tree))
+        {}
     public:
         struct tree_exists : std::logic_error
         {
             explicit tree_exists(std::string const &function)
-                : logic_error("The tree already exists in function"s + function + ".")
+                : logic_error("The tree already exists in function "s + function + ".")
             {
             }
         };
         struct tree_not_exist : std::logic_error
         {
             explicit tree_not_exist(std::string const &function)
-                : logic_error("The tree doesn't exist in function"s + function + ".")
+                : logic_error("The tree doesn't exist in function "s + function + ".")
             {
             }
         };
-        struct parse_failed : std::domain_error
+        struct parse_failed : std::logic_error
         {
             parse_failed(std::string const &function)
-                : domain_error("Parse tree failed in function"s + function + ".")
+                : logic_error("Parse tree failed in function "s + function + ".")
             {
             }
         };
         struct precondition_failed_to_satisfy : std::logic_error
         {
             precondition_failed_to_satisfy(std::string const &function)
-                : logic_error("The precondition of funciton "s + function + "failed to satisfy.")
+                : logic_error("The precondition of funciton "s + function + " failed to satisfy.")
             {
             }
         };
 
+        tree_adapter() = default;
         void InitBiTree()
         {
             if (tree)
@@ -245,17 +252,17 @@ namespace binary_tree_nm
             throw precondition_failed_to_satisfy(__func__);
         }
         template <typename child_t, typename iter, typename dir_t = right_t>
-        void InsertChild(iter pos, tree_type inserted, dir_t = dir_t{})
+        void InsertChild(iter pos, tree_adapter inserted, child_t = child_t{}, dir_t = dir_t{})
         {
-            auto replaced = tree->template replace_child<child_t>(pos, std::move(inserted));
+            auto replaced = tree->template replace_child<child_t>(pos, std::move(inserted.tree.value()));
             auto farest = tree->template begin<inorder_t, dir_t>();
             auto empty = tree->template replace_child<dir_t>(farest, std::move(replaced));
             assert(empty.empty());
         }
         template <typename child_t, typename iter>
-        auto DeleteChild(iter pos)
+        auto DeleteChild(iter pos, child_t = child_t{})
         {
-            return tree->template replace_child<child_t>(pos, tree_type{});
+            return tree_adapter(tree->template replace_child<child_t>(pos, tree_type{}));
         }
         template <typename Callable, typename order_t, typename dir_t = left_first_t>
         void Traverse(Callable callable, order_t order, dir_t = dir_t{})
@@ -267,10 +274,13 @@ namespace binary_tree_nm
         void LevelOrderTraverse(Callable callable, dir_t = dir_t{})
         {
             auto iter = tree->template root<preorder_t, dir_t>();
-            std::queue<decltype(iter)> queue{iter};
+            if(!iter)
+                return;
+            std::queue<decltype(iter)> queue;
+            queue.push(iter);
             while (!queue.empty())
             {
-                iter = queue.back(), queue.pop();
+                iter = queue.front(), queue.pop();
                 if (iter.template first_child<dir_t>())
                     queue.push(iter.template first_child<dir_t>());
                 if (iter.template second_child<dir_t>())
@@ -279,9 +289,48 @@ namespace binary_tree_nm
             }
         }
 
+        template <typename order_t = preorder_t, typename dir_t = left_first_t>
+        auto get_iterator(key_type const &key, order_t = order_t{}, dir_t = dir_t{})
+        {
+            if(auto iter = std::find(tree->template begin<order_t, dir_t>(), tree->template end<order_t, dir_t>(), key))
+                return iter;
+            throw precondition_failed_to_satisfy(__func__);
+        }
+        template <typename order_t = preorder_t, typename dir_t = left_first_t>
+        auto get_end_iterator(order_t = order_t{}, dir_t = dir_t{})
+        {
+            if(!tree)
+                throw precondition_failed_to_satisfy(__func__);
+            return tree->template end<order_t, dir_t>();
+        }
+
         friend bool operator==(tree_adapter const &lhs, tree_adapter const &rhs)
         {
             return *lhs.tree == *rhs.tree;
+        }
+
+        friend std::ostream &operator<<(std::ostream &out, tree_adapter const&tree)
+        {
+            if(!tree.tree)
+                out << 0 << " ";
+            else
+            {
+                out << 1 << " " << tree.tree.value();
+            }
+            return out;
+        }
+        friend std::istream &operator>>(std::istream &in, tree_adapter &tree)
+        {
+            int has_tree = 0;
+            in >> has_tree;
+            if(!has_tree)
+                tree.tree.reset();
+            else
+            {
+                tree.tree = tree_type{};
+                in >> tree.tree.value();
+            }
+            return in;
         }
     };
 }

@@ -193,11 +193,13 @@ namespace binary_tree_nm
             assert(current);
             if (current->parent == nullptr)
                 return nullptr;
-            else if (direction::first_child(current->parent).get() == current)
+            else if (direction::first_child(current->parent).get() == current &&
+                     direction::second_child(current->parent) != nullptr)
                 return begin(direction::second_child(current->parent).get());
             else
             {
-                assert(direction::second_child(current->parent).get() == current);
+                assert(direction::second_child(current->parent).get() == current ||
+                       direction::second_child(current->parent) == nullptr);
                 return current->parent;
             }
         }

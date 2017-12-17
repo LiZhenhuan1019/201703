@@ -12,9 +12,14 @@
 namespace binary_tree_nm
 {
 
-    template <typename T>
+    template <typename Key, typename Value = null_value_tag>
     class console_ui
     {
+        using tree_type = tree_adapter<Key, Value>;
+        using map_type = std::map<std::string, tree_type>;
+        using key_type = typename tree_type::key_type;
+        using value_type = typename tree_type::value_type;
+        using iterator_type = decltype(std::declval<tree_type>().Parent(std::declval<key_type>()));
         struct bad_input : std::runtime_error
         {
             using std::runtime_error::runtime_error;
@@ -45,7 +50,15 @@ namespace binary_tree_nm
                 print_menu();
                 print_info();
                 print_input(button);
-                commands[button].act(*this);
+                try
+                {
+                    commands[button].act(*this);
+                }
+                catch(std::logic_error const&e)
+                {
+                    std::cout << "exception caught: " << e.what() << "\n";
+                }
+
             }
         }
 
@@ -57,128 +70,185 @@ namespace binary_tree_nm
 
         void init()
         {
-            print_error_ok(trees[current_list].InitalList());
+            trees[current_tree_name].InitBiTree();
+            print_ok();
         }
 
         void destroy()
         {
-            print_error_ok(trees[current_list].DestroyList());
+            trees[current_tree_name].DestroyBiTree();
+            print_ok();
+        }
+
+        void create()
+        {
+            std::cout << "Please input the definition of the tree to create.\n";
+            auto definition = input_line<std::string>();
+            tree_type new_tree;
+            trees[current_tree_name].CreateBiTree(definition);
+            print_ok();
         }
 
         void clear()
         {
-            print_error_ok(trees[current_list].ClearList());
+            trees[current_tree_name].ClearBiTree();
+            print_ok();
         }
 
         void empty()
         {
-            print_true_false(trees[current_list].ListEmpty());
+            print_value(trees[current_tree_name].BiTreeEmpty());
+            print_ok();
         }
 
-        void length()
+        void depth()
         {
-            if (!check_exists())
-                return;
-            print_value(trees[current_list].ListLength());
+            print_value(trees[current_tree_name].BiTreeDepth());
+            print_ok();
+        }
+
+        void root()
+        {
+            auto root = trees[current_tree_name].Root();
+            std::cout << "The content of root : " << *root << "\n";
+            print_ok();
         }
 
         void get()
         {
-            if (!check_exists())
-                return;
-            std::cout << "Please input the index of element to show.\n";
-            auto pos = input_index();
-            T element;
-            auto status = trees[current_list].GetElem(pos, element);
-            print_error_ok(status);
-            if (status == OK)
-            {
-                std::cout << "The element ";
-                print_value(element);
-            }
+            std::cout << "Please input the element to show.\n";
+            auto element = input_line<key_type>();
+            auto &value = trees[current_tree_name].Value(element);
+            std::cout << "The element ";
+            print_value(value);
+            print_ok();
         }
 
-        void locate()
+        void assign()
         {
-            if (!check_exists())
-                return;
-            std::cout << "Please input a element to locate.\n";
-            auto element = input_value<T>();
-            auto pos = trees[current_list].LocateElem(element, std::equal_to<void>());
-            if (pos == 0)
-                print_error(ERROR);
+            std::cout << "Please input the element to change.\n";
+            auto element = input_line<key_type>();
+            std::cout << "Please input the value to change to.\n";
+            auto value = input_line<value_type>();
+            trees[current_tree_name].Assign(element, value);
+            print_ok();
+        }
+
+        void parent()
+        {
+            std::cout << "Please input the child.\n";
+            auto element = input_line<key_type>();
+            auto parent = trees[current_tree_name].Parent(element);
+            if (!parent)
+                print_null();
+            else
+                print_value(*parent);
+            print_ok();
+        }
+
+        void child()
+        {
+            std::cout << "Please input the element whose child will be shown.\n";
+            auto element = input_line<key_type>();
+            std::cout << "Please select left or right child to show.(0 --> left, nonzero --> right)\n";
+            auto select_right = input_value<int>();
+            iterator_type child = trees[current_tree_name].get_end_iterator();
+            if (select_right)
+                child = trees[current_tree_name].Child(element, right_child);
+            else
+                child = trees[current_tree_name].Child(element, left_child);
+            print_value(*child);
+            print_ok();
+        }
+
+        void sibling()
+        {
+            std::cout << "Please input the element whose sibling will be shown.\n";
+            auto element = input_line<key_type>();
+            std::cout << "Please select left or right sibling to show.(0 -->left, nozero --> right)\n";
+            auto select_right = input_value<int>();
+            iterator_type sibling = trees[current_tree_name].get_end_iterator();
+            if (select_right)
+                sibling = trees[current_tree_name].Sibling(element, right_child);
+            else
+                sibling = trees[current_tree_name].Sibling(element, left_child);
+            if (!sibling)
+                print_null();
             else
             {
-                std::cout << "The located ";
-                print_value(pos);
-            }
-        }
-
-        void prev()
-        {
-            if (!check_exists())
-                return;
-            std::cout << "Please input the element whose previous element will be located.\n";
-            auto current_element = input_value<T>();
-            T previous_element;
-            auto status = trees[current_list].PriorElem(current_element, previous_element);
-            print_error_ok(status);
-            if (status == OK)
-            {
-                std::cout << "The previous element ";
-                print_value(previous_element);
-            }
-        }
-
-        void next()
-        {
-            if (!check_exists())
-                return;
-            std::cout << "Please input the element whose next element will be located.\n";
-            auto current_element = input_value<T>();
-            T next_element;
-            auto status = trees[current_list].NextElem(current_element, next_element);
-            print_error_ok(status);
-            if (status == OK)
-            {
-                std::cout << "The next element ";
-                print_value(next_element);
+                print_value(*sibling);
+                print_ok();
             }
         }
 
         void insert()
         {
-            if (!check_exists())
-                return;
-            std::cout << "Please input the index where to insert.\n";
-            auto index = input_index(1);
-            std::cout << "Please input the element to insert.\n";
-            auto element = input_value<T>();
-            auto status = trees[current_list].ListInsert(index, element);
-            print_error_ok(status);
+            std::cout << "Please input the element.\n";
+            auto element = input_line<key_type>();
+            auto iter = trees[current_tree_name].get_iterator(element);
+            std::cout << "Please select left or right child to replace.(0 -->left, nozero --> right)\n";
+            auto select_right = input_value<int>();
+            std::cout << "Please input the definition of the tree to insert.\n";
+            auto definition = input_line<std::string>();
+            tree_type new_tree;
+            new_tree.CreateBiTree(definition);
+            if (select_right)
+                trees[current_tree_name].InsertChild(iter, std::move(new_tree), right_child);
+            else
+                trees[current_tree_name].InsertChild(iter, std::move(new_tree), left_child);
+            print_ok();
         }
 
         void erase()
         {
-            if (!check_exists())
-                return;
-            std::cout << "Please input the index of element delete.\n";
-            auto index = input_index();
-            T result;
-            auto erased_element = trees[current_list].ListDelete(index, result);
-            print_error_ok(erased_element);
-            if (erased_element == OK)
-            {
-                std::cout << "The erased ";
-                print_value(result);
-            }
+            std::cout << "Please input the parent element.\n";
+            auto element = input_line<key_type>();
+            auto iter = trees[current_tree_name].get_iterator(element);
+            std::cout << "Please select left or right child to replace.(0 -->left, nozero --> right)\n";
+            auto select_right = input_value<int>();
+            tree_type deleted_tree;
+            if (select_right)
+                deleted_tree = trees[current_tree_name].DeleteChild(iter, right_child);
+            else
+                deleted_tree = trees[current_tree_name].DeleteChild(iter, left_child);
+            print_ok();
         }
 
-        void iterate()
+        void preorder_iterate()
         {
-            auto status = trees[current_list].ListTraverse([](auto s)
-                                                           { std::cout << "visit element " << s << "\n"; });
-            print_error_ok(status);
+            trees[current_tree_name].Traverse([this](auto const &element)
+                                              {
+                                                  std::cout << "visit element ";
+                                                  print_value(element);
+                                              }, preorder);
+            print_ok();
+        }
+        void inorder_iterate()
+        {
+            trees[current_tree_name].Traverse([this](auto const &element)
+                                              {
+                                                  std::cout << "visit element ";
+                                                  print_value(element);
+                                              }, inorder);
+            print_ok();
+        }
+        void postorder_iterate()
+        {
+            trees[current_tree_name].Traverse([this](auto const &element)
+                                              {
+                                                  std::cout << "visit element ";
+                                                  print_value(element);
+                                              }, postorder);
+            print_ok();
+        }
+        void levelorder_iterate()
+        {
+            trees[current_tree_name].LevelOrderTraverse([this](auto const &element)
+                                                        {
+                                                            std::cout << "visit element ";
+                                                            print_value(element);
+                                                        });
+            print_ok();
         }
 
         void save()
@@ -186,9 +256,9 @@ namespace binary_tree_nm
             std::ofstream file(save_file_name);
             file << *this;
             if (file.good())
-                print_error_ok(OK);
+                print_ok();
             else
-                print_error_ok(ERROR);
+                print_error();
         }
 
         void load()
@@ -196,56 +266,52 @@ namespace binary_tree_nm
             std::ifstream file(save_file_name);
             file >> *this;
             if (file.good())
-                print_error_ok(OK);
+                print_ok();
             else
-                print_error_ok(ERROR);
+                print_error();
         }
 
         void add_list()
         {
-            std::cout << "Please enter the position to insert the list.\n";
-            std::cout << "The position should be in the range of [0, " << trees.size() + 1 << ") \n";
-            auto index = input_index();
-            if ((std::size_t)index > trees.size())
+            std::cout << "Please enter the name of the list to add.\n";
+            auto name = input_line<std::string>();
+            auto iter = trees.find(name);
+            if (iter == trees.end())
             {
-                print_error_ok(ERROR);
-                return;
+                return print_error();
             }
-            trees.insert(std::next(trees.begin(), index), list_adapter < T > {});
-            print_error_ok(OK);
+            trees.insert(std::pair{name, tree_type{}});
+            print_ok();
         }
 
         void select_list()
         {
-            std::cout << "Please enter the index of list to select.\n";
-            std::cout << "The index should be in the range of [0, " << trees.size() << ") \n";
-            auto index = input_index();
-            if ((std::size_t)index >= trees.size())
+            std::cout << "Please enter the name of list to select.\n";
+            auto name = input_line<std::string>();
+            auto iter = trees.find(name);
+            if (iter == trees.end())
             {
-                print_error_ok(ERROR);
-                return;
+                current_tree_name = name;
+                return print_ok();
             }
-            current_list = (std::size_t)index;
-            print_error_ok(OK);
+            print_error();
         }
 
         void remove_list()
         {
             if (trees.size() == 1)
-                print_error_ok(ERROR);
-            std::cout << "Please enter the index of list to remove.\n";
-            std::cout << "The index should be in the range of [0, " << trees.size() << ") \n";
-            auto input = input_index();
-            if ((std::size_t)input >= trees.size())
+                print_error();
+            std::cout << "Please enter the name of list to remove.\n";
+            auto name = input_line<std::string>();
+            auto iter = trees.find(name);
+            if (iter == trees.end())
             {
-                print_error_ok(ERROR);
-                return;
+                if (name == current_tree_name)
+                    name = trees.begin()->first;
+                trees.erase(iter);
+                return print_ok();
             }
-            auto index = (std::size_t)input;
-            if (index <= current_list && current_list > 0)
-                --current_list;
-            trees.erase(std::next(trees.begin(), index));
-            print_error_ok(OK);
+            print_error();
         }
 
         void print_menu()
@@ -261,7 +327,7 @@ namespace binary_tree_nm
 
         void print_info()
         {
-            std::cout << "Current selected tree: " << current_list << "\n";
+            std::cout << "Current selected tree: " << current_tree_name << "\n";
             std::cout << "Number of total trees: " << trees.size() << "\n";
         }
 
@@ -272,12 +338,27 @@ namespace binary_tree_nm
 
         static void eat_line(std::istream &i)
         {
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); //跳过直到换行符, 这样就到了下一行.
+            i.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); //跳过直到换行符, 这样就到了下一行.
         }
 
         auto input_index(std::size_t start = 0)
         {
             return input_value<std::size_t>(start, std::numeric_limits<int>::max() - 1);
+        }
+
+        template <typename U>
+        static auto input_line(std::istream &in = std::cin)
+        {
+            std::string str;
+            getline(in, str);
+            U u;
+            assign_element(str, u);
+            return u;
+        }
+        template <typename U>
+        static void input_line(std::istream &in, U &u)
+        {
+            u = input_line<U>(in);
         }
 
         template <typename U>
@@ -319,6 +400,7 @@ namespace binary_tree_nm
         {
             U input;
             std::cin >> input;
+            eat_line(std::cin);
             if (std::cin.bad())
                 throw bad_input("irrecoverable input stream error.");
             else if (std::cin.fail())
@@ -329,44 +411,25 @@ namespace binary_tree_nm
             return input;
         }
 
-        void print_true_false(int status)
+        void print_ok()
         {
-            if (status == TRUE)
-                std::cout << "result: TRUE\n";
-            else if (status == FALSE)
-                std::cout << "result: FALSE\n";
-            else if (status == ERROR)
-                std::cout << "result: ERROR\n";
+            std::cout << "result :OK\n";
         }
 
-        void print_error_ok(int status)
+        void print_error()
         {
-            if (status == OK)
-                std::cout << "result: OK\n";
-            else
-                print_error(status);
+            std::cout << "result: ERROR\n";
         }
 
-        void print_error(int status)
+        void print_null()
         {
-            if (status == ERROR)
-                std::cout << "result: ERROR\n";
+            std::cout << "result : null\n";
         }
 
         template <typename U>
         void print_value(U const &value)
         {
             std::cout << "value: " << value << "\n";
-        }
-
-        bool check_exists()
-        {
-            if (trees[current_list].ListEmpty() == ERROR)
-            {
-                print_error_ok(ERROR);
-                return false;
-            }
-            return true;
         }
 
         using action = decltype(std::mem_fn(&console_ui::exit));
@@ -383,27 +446,33 @@ namespace binary_tree_nm
         }
 
         bool quit = false;
-        std::size_t current_list = 0;
-        std::map<std::string, binary_tree_nm::tree_adapter<T>> trees;
+        std::string current_tree_name = "default";
+        map_type trees;
 
         inline static auto commands = make_commands(std::pair{&console_ui::exit, "Exit"},
-                                                    std::pair{&console_ui::init, "InitList"},
-                                                    std::pair{&console_ui::destroy, "DestroyList"},
-                                                    std::pair{&console_ui::clear, "ClearList"},
-                                                    std::pair{&console_ui::empty, "ListEmpty"},
-                                                    std::pair{&console_ui::length, "ListLength"},
-                                                    std::pair{&console_ui::get, "GetElem"},
-                                                    std::pair{&console_ui::locate, "LocateElem"},
-                                                    std::pair{&console_ui::prev, "PriorElem"},
-                                                    std::pair{&console_ui::next, "NextElem"},
-                                                    std::pair{&console_ui::insert, "ListInsert"},
-                                                    std::pair{&console_ui::erase, "ListDelete"},
-                                                    std::pair{&console_ui::iterate, "ListTraverse"},
-                                                    std::pair{&console_ui::save, "ListSave"},
-                                                    std::pair{&console_ui::load, "ListLoad"},
-                                                    std::pair{&console_ui::add_list, "AddList"},
-                                                    std::pair{&console_ui::select_list, "SelectList"},
-                                                    std::pair{&console_ui::remove_list, "RemoveList"}
+                                                    std::pair{&console_ui::init, "InitBiTree"},
+                                                    std::pair{&console_ui::destroy, "DestroyBiTree"},
+                                                    std::pair{&console_ui::create, "CreateBiTree"},
+                                                    std::pair{&console_ui::clear, "ClearBiTree"},
+                                                    std::pair{&console_ui::empty, "BiTreeEmpty"},
+                                                    std::pair{&console_ui::depth, "BiTreeDepth"},
+                                                    std::pair{&console_ui::root, "Root"},
+                                                    std::pair{&console_ui::get, "Value"},
+                                                    std::pair{&console_ui::assign, "Assign"},
+                                                    std::pair{&console_ui::parent, "Parent"},
+                                                    std::pair{&console_ui::child, "Child"},
+                                                    std::pair{&console_ui::sibling, "Sibling"},
+                                                    std::pair{&console_ui::insert, "InsertChild"},
+                                                    std::pair{&console_ui::erase, "DeleteChild"},
+                                                    std::pair{&console_ui::preorder_iterate, "PreorderIterate"},
+                                                    std::pair{&console_ui::inorder_iterate, "InorderIterate"},
+                                                    std::pair{&console_ui::postorder_iterate, "PostorderIterate"},
+                                                    std::pair{&console_ui::levelorder_iterate, "LevelOrderIterate"},
+                                                    std::pair{&console_ui::save, "Save"},
+                                                    std::pair{&console_ui::load, "Load"},
+                                                    std::pair{&console_ui::add_list, "AddTree"},
+                                                    std::pair{&console_ui::select_list, "SelectTree"},
+                                                    std::pair{&console_ui::remove_list, "RemoveTree"}
         );
         inline static const std::string save_file_name = "data.save";
 
@@ -420,13 +489,26 @@ namespace binary_tree_nm
 
         friend std::ostream &operator<<(std::ostream &out, console_ui const &ui)
         {
-            out << ui.current_list << " " << ui.trees;
+            out << ui.current_tree_name << "\n";
+            out << ui.trees.size() << "\n";
+            for (auto iter = ui.trees.begin(); iter != ui.trees.end(); ++iter)
+                out << iter->first << "\n" << iter->second << "\n";
             return out;
         }
 
         friend std::istream &operator>>(std::istream &in, console_ui &ui)
         {
-            in >> ui.current_list >> ui.trees;
+            ui.trees.clear();
+            std::string str;
+            ui.input_line(in, ui.current_tree_name);
+            std::size_t size = 0;
+            ui.input_line(in, size);
+            for (std::size_t i = 0; i < size; ++i)
+            {
+                auto name = ui.input_line<std::string>(in);
+                auto tree = ui.input_line<console_ui::tree_type>(in);
+                ui.trees[name] = tree;
+            }
             return in;
         }
     };

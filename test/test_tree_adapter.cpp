@@ -26,8 +26,9 @@ void test_tree_adapter()
     assert(get_value(*adapter.Sibling<right_t>("left")) == 4);
     assert(get_value(*adapter.Sibling<left_t>("right")) == 2);
     auto right_node = adapter.Child<right_t>("root");
-    std::istringstream stream(definition);
-    adapter.InsertChild<right_t>(right_node, tree_parse<left_first_t, detail::stored_t<std::string, int>>(stream).get_binary_tree().value());
+    decltype(adapter) new_adapter;
+    new_adapter.CreateBiTree(definition);
+    adapter.InsertChild<right_t>(right_node, new_adapter);
     decltype(adapter) equals;
     equals.CreateBiTree(
         R"~([(root, 1), (left, 2),(left left,3),null,null,null,(right,4),null, (root, 1), (left,2),(left left,3),null,null,null,(right,4),null,(right right, 5),null, (right right,5),null,null])~");
