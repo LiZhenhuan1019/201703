@@ -35,6 +35,7 @@ namespace binary_tree_nm
     public:
         console_ui()
         {
+            trees[current_tree_name] = tree_type{};
         }
 
         void execute()
@@ -48,7 +49,6 @@ namespace binary_tree_nm
                 auto button = input_value(0, (int)commands.size());
                 clear_screen();
                 print_menu();
-                print_info();
                 print_input(button);
                 try
                 {
@@ -58,6 +58,7 @@ namespace binary_tree_nm
                 {
                     std::cout << "exception caught: " << e.what() << "\n";
                 }
+                print_info();
 
             }
         }
@@ -306,9 +307,9 @@ namespace binary_tree_nm
             auto iter = trees.find(name);
             if (iter != trees.end())
             {
-                if (name == current_tree_name)
-                    name = trees.begin()->first;
                 trees.erase(iter);
+                if (name == current_tree_name)
+                    current_tree_name = trees.begin()->first;
                 return print_ok();
             }
             print_error();
