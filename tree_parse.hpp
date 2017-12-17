@@ -165,7 +165,7 @@ namespace binary_tree_nm
             detail::force_read_char(source, ',');
             if (auto element = get_element())
             {
-                tree.template replace_child<dir>(tree.root(), get_subtree(std::move(element.value())));
+                tree.replace_child(tree.root(), get_subtree(std::move(element.value())), dir{});
             }
         }
         std::optional<value_type> get_element()

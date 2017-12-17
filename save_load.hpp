@@ -50,7 +50,7 @@ namespace binary_tree_nm
     std::ostream &operator<<(std::ostream &out, binary_tree <T> const &tree)
     {
         out << "[";;
-        auto iter = tree.template begin<preorder_t>();
+        auto iter = tree.begin(preorder);
         print_node(out, iter);
         out << "]";
         return out;

@@ -289,13 +289,13 @@ namespace binary_tree_nm
                 return this->previous(), iter;
             }
             template <typename order = default_order, typename direction = default_direction>
-            void next()
+            void next(order = order{}, direction = direction{})
             {
                 assert(node);
                 node = order_template<value_type, order, direction>::next(node);
             }
             template <typename order = default_order, typename direction = default_direction>
-            void previous()
+            void previous(order = order{}, direction = direction{})
             {
                 if (node == nullptr)
                     node = order_template<value_type, order, direction>::inverse_order::begin(tree->root_.get());
@@ -307,13 +307,13 @@ namespace binary_tree_nm
                 }
             }
             template <typename direction = default_direction>
-            const_iterator first_child() const
+            const_iterator first_child(direction = direction{}) const
             {
                 assert(node);
                 return const_iterator(tree, iterate_direction<direction>::first_child(node).get());
             }
             template <typename direction = default_direction>
-            const_iterator second_child() const
+            const_iterator second_child(direction = direction{}) const
             {
                 assert(node);
                 return const_iterator(tree, iterate_direction<direction>::second_child(node).get());
@@ -324,7 +324,7 @@ namespace binary_tree_nm
                 return const_iterator(tree, node->parent);
             }
             template <typename order = default_order, typename direction = default_direction>
-            auto change() const
+            auto change(order = order{}, direction = direction{}) const
             {
                 return const_iterator<order, direction>(*this);
             }
@@ -386,13 +386,13 @@ namespace binary_tree_nm
                 return this->previous(), iter;
             }
             template <typename order = default_order, typename direction = default_direction>
-            void next()
+            void next(order = order{}, direction = direction{})
             {
                 assert(node);
                 node = order_template<value_type, order, direction>::next(node);
             }
             template <typename order = default_order, typename direction = default_direction>
-            void previous()
+            void previous(order = order{}, direction = direction{})
             {
                 if (node == nullptr)
                     node = order_template<value_type, order, direction>::inverse_order::begin(tree->root_.get());
@@ -404,13 +404,13 @@ namespace binary_tree_nm
                 }
             }
             template <typename direction = default_direction>
-            iterator first_child() const
+            iterator first_child(direction = direction{}) const
             {
                 assert(node);
                 return iterator(tree, iterate_direction<direction>::first_child(node).get());
             }
             template <typename direction = default_direction>
-            iterator second_child() const
+            iterator second_child(direction = direction{}) const
             {
                 assert(node);
                 return iterator(tree, iterate_direction<direction>::second_child(node).get());
@@ -421,7 +421,7 @@ namespace binary_tree_nm
                 return iterator(tree, node->parent);
             }
             template <typename order = default_order, typename direction = default_direction>
-            auto change() const
+            auto change(order = order{}, direction = direction{}) const
             {
                 return iterator<order, direction>(*this);
             }
@@ -435,7 +435,7 @@ namespace binary_tree_nm
         binary_tree(binary_tree const &src)
         {
             set_root(*src.root());
-            for (auto src_iter = src.begin<preorder_t>(), dest_iter = cbegin<preorder_t>(); src_iter != src.end(); ++src_iter, ++dest_iter)
+            for (auto src_iter = src.begin(preorder), dest_iter = cbegin(preorder); src_iter != src.end(); ++src_iter, ++dest_iter)
             {
                 if (src_iter.first_child())
                     new_child<default_direction>(dest_iter, *src_iter.first_child());
@@ -450,54 +450,54 @@ namespace binary_tree_nm
             return *this;
         }
 
-        template <typename order = default_order, typename direction = default_direction>
-        auto begin()
+        template <typename order_t = default_order, typename direction_t = default_direction>
+        auto begin(order_t order = order_t{}, direction_t direction = direction_t{})
         {
             if (!root_)
-                return end<order, direction>();
-            return get_iter<order, direction>(order_template<value_type, order, direction>::begin(root_.get()));
+                return end(order, direction);
+            return get_iter<order_t, direction_t>(order_template<value_type, order_t, direction_t>::begin(root_.get()));
         }
 
-        template <typename order = default_order, typename direction = default_direction>
-        auto begin() const
+        template <typename order_t = default_order, typename direction_t = default_direction>
+        auto begin(order_t order = order_t{}, direction_t direction = direction_t{}) const
         {
             if (!root_)
-                return end<order, direction>();
-            return get_const_iter<order, direction>(order_template<value_type, order, direction>::begin(root_.get()));
+                return end(order, direction);
+            return get_const_iter<order_t, direction_t>(order_template<value_type, order_t, direction_t>::begin(root_.get()));
         }
-        template <typename order = default_order, typename direction = default_direction>
-        auto cbegin() const
+        template <typename order_t = default_order, typename direction_t = default_direction>
+        auto cbegin(order_t order = order_t{}, direction_t direction = direction_t{}) const
         {
             if (!root_)
-                return end<order, direction>();
-            return begin<order, direction>();
+                return end(order, direction);
+            return begin(order, direction);
         }
 
-        template <typename order = default_order, typename direction = default_direction>
-        auto end()
+        template <typename order_t = default_order, typename direction_t = default_direction>
+        auto end(order_t = order_t{}, direction_t = direction_t{})
         {
-            return get_iter<order, direction>(nullptr);
+            return get_iter<order_t, direction_t>(nullptr);
         }
-        template <typename order = default_order, typename direction = default_direction>
-        auto end() const
+        template <typename order_t = default_order, typename direction_t = default_direction>
+        auto end(order_t = order_t{}, direction_t = direction_t{}) const
         {
-            return get_const_iter<order, direction>(nullptr);
+            return get_const_iter<order_t, direction_t>(nullptr);
         }
-        template <typename order = default_order, typename direction = default_direction>
-        auto cend() const
+        template <typename order_t = default_order, typename direction_t = default_direction>
+        auto cend(order_t = order_t{}, direction_t = direction_t{}) const
         {
-            return get_const_iter<order, direction>(nullptr);
+            return get_const_iter<order_t, direction_t>(nullptr);
         }
 
-        template <typename order = default_order, typename direction = default_direction>
-        auto root()
+        template <typename order_t = default_order, typename direction_t = default_direction>
+        auto root(order_t = order_t{}, direction_t = direction_t{})
         {
-            return get_iter<order, direction>(root_.get());
+            return get_iter<order_t, direction_t>(root_.get());
         }
-        template <typename order = default_order, typename direction = default_direction>
-        auto root() const
+        template <typename order_t = default_order, typename direction_t = default_direction>
+        auto root(order_t = order_t{}, direction_t = direction_t{}) const
         {
-            return get_const_iter<order, direction>(root_.get());
+            return get_const_iter<order_t, direction_t>(root_.get());
         }
 
         void clear()
@@ -555,10 +555,10 @@ namespace binary_tree_nm
             child = make_handler(value_type(std::forward<Args>(args)...), parent.node);
             return iter(this, child.get());
         }
-        template <typename direction, typename iter>
-        binary_tree replace_child(iter parent, binary_tree &&tree)
+        template <typename iter, typename direction_t>
+        binary_tree replace_child(iter parent, binary_tree &&tree, direction_t = direction_t{})
         {
-            auto &child = iterate_direction<direction>::first_child(parent.node);
+            auto &child = iterate_direction<direction_t>::first_child(parent.node);
             auto replaced = std::move(child);
             child = std::move(tree.root_);
             if (child)
@@ -568,7 +568,7 @@ namespace binary_tree_nm
 
         friend bool operator==(binary_tree const &lhs, binary_tree const &rhs)
         {
-            auto left_iter = lhs.template begin<preorder_t>(), right_iter = rhs.template begin<preorder_t>();
+            auto left_iter = lhs.begin(preorder), right_iter = rhs.begin(preorder);
             for (; left_iter != lhs.end() && right_iter != rhs.end(); ++left_iter, ++right_iter)
             {
                 if (*left_iter != *right_iter)

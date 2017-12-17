@@ -276,7 +276,7 @@ namespace binary_tree_nm
             std::cout << "Please enter the name of the tree to add.\n";
             auto name = input_line<std::string>();
             auto iter = trees.find(name);
-            if (iter == trees.end())
+            if (iter != trees.end())
             {
                 return print_error();
             }
@@ -289,7 +289,7 @@ namespace binary_tree_nm
             std::cout << "Please enter the name of tree to select.\n";
             auto name = input_line<std::string>();
             auto iter = trees.find(name);
-            if (iter == trees.end())
+            if (iter != trees.end())
             {
                 current_tree_name = name;
                 return print_ok();
@@ -304,7 +304,7 @@ namespace binary_tree_nm
             std::cout << "Please enter the name of tree to remove.\n";
             auto name = input_line<std::string>();
             auto iter = trees.find(name);
-            if (iter == trees.end())
+            if (iter != trees.end())
             {
                 if (name == current_tree_name)
                     name = trees.begin()->first;

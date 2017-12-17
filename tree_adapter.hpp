@@ -210,70 +210,88 @@ namespace binary_tree_nm
             return tree->root();
         }
         template <typename order_t = preorder_t, typename dir_t = left_first_t>
-        auto &Value(key_type const &key, order_t = order_t{}, dir_t = dir_t{}) const
+        auto &Value(key_type const &key, order_t order = order_t{}, dir_t dir = dir_t{}) const
         {
-            if (auto iter = std::find(tree->template begin<order_t, dir_t>(), tree->template end<order_t, dir_t>(), key))
+            if (!tree)
+                throw tree_not_exist(__func__);
+            if (auto iter = std::find(tree->begin(order, dir), tree->end(order, dir), key))
                 return get_value(*iter);
             throw precondition_failed_to_satisfy(__func__);
         }
         template <typename U, typename order_t = preorder_t, typename dir_t = left_first_t>
-        void Assign(key_type const &key, U &&value, order_t = order_t{}, dir_t = dir_t{})
+        void Assign(key_type const &key, U &&value, order_t order = order_t{}, dir_t dir = dir_t{})
         {
-            if (auto iter = std::find(tree->template begin<order_t, dir_t>(), tree->template end<order_t, dir_t>(), key))
+            if (!tree)
+                throw tree_not_exist(__func__);
+            if (auto iter = std::find(tree->begin(order, dir), tree->end(order, dir), key))
                 get_value(*iter) = std::forward<U>(value);
             else
                 throw precondition_failed_to_satisfy(__func__);
         }
 
         template <typename order_t = preorder_t, typename dir_t = left_first_t>
-        auto Parent(key_type const &key, order_t = order_t{}, dir_t = dir_t{}) const
+        auto Parent(key_type const &key, order_t order = order_t{}, dir_t dir = dir_t{}) const
         {
-            if (auto iter = std::find(tree->template begin<order_t, dir_t>(), tree->template end<order_t, dir_t>(), key))
+            if (!tree)
+                throw tree_not_exist(__func__);
+            if (auto iter = std::find(tree->begin(order, dir), tree->end(order, dir), key))
                 return iter.parent();
             throw precondition_failed_to_satisfy(__func__);
         }
         template <typename child_t, typename order_t = preorder_t, typename dir_t = left_first_t>
-        auto Child(key_type const &key, child_t = child_t{}, order_t = order_t{}, dir_t = dir_t{}) const
+        auto Child(key_type const &key, child_t child = child_t{}, order_t order = order_t{}, dir_t dir = dir_t{}) const
         {
-            if (auto iter = std::find(tree->template begin<order_t, dir_t>(), tree->template end<order_t, dir_t>(), key))
-                return iter.template first_child<child_t>();
+            if (!tree)
+                throw tree_not_exist(__func__);
+            if (auto iter = std::find(tree->begin(order, dir), tree->end(order, dir), key))
+                return iter.first_child(child);
             throw precondition_failed_to_satisfy(__func__);
         }
         template <typename child_t, typename order_t = preorder_t, typename dir_t = left_first_t>
-        auto Sibling(key_type const &key, child_t = child_t{}, order_t = order_t{}, dir_t = dir_t{}) const
+        auto Sibling(key_type const &key, child_t child = child_t{}, order_t order = order_t{}, dir_t dir = dir_t{}) const
         {
-            if (auto iter = std::find(tree->template begin<order_t, dir_t>(), tree->template end<order_t, dir_t>(), key))
+            if (!tree)
+                throw tree_not_exist(__func__);
+            if (auto iter = std::find(tree->begin(order, dir), tree->end(order, dir), key))
             {
-                auto desired_child = iter.parent().template first_child<child_t>();
+                auto desired_child = iter.parent().first_child(child);
                 if (desired_child == iter)
-                    return tree->template end<order_t, dir_t>();
+                    return tree->end(order, dir);
                 return desired_child;
             }
             throw precondition_failed_to_satisfy(__func__);
         }
         template <typename child_t, typename iter, typename dir_t = right_t>
-        void InsertChild(iter pos, tree_adapter inserted, child_t = child_t{}, dir_t = dir_t{})
+        void InsertChild(iter pos, tree_adapter inserted, child_t child = child_t{}, dir_t dir = dir_t{})
         {
-            auto replaced = tree->template replace_child<child_t>(pos, std::move(inserted.tree.value()));
-            auto farest = tree->template begin<inorder_t, dir_t>();
-            auto empty = tree->template replace_child<dir_t>(farest, std::move(replaced));
+            if (!tree)
+                throw tree_not_exist(__func__);
+            auto replaced = tree->replace_child(pos, std::move(inserted.tree.value()), child);
+            auto farest = tree->begin(inorder, dir);
+            auto empty = tree->replace_child(farest, std::move(replaced), dir);
             assert(empty.empty());
         }
         template <typename child_t, typename iter>
-        auto DeleteChild(iter pos, child_t = child_t{})
+        auto DeleteChild(iter pos, child_t child = child_t{})
         {
-            return tree_adapter(tree->template replace_child<child_t>(pos, tree_type{}));
+            if (!tree)
+                throw tree_not_exist(__func__);
+            return tree_adapter(tree->replace_child(pos, tree_type{}, child));
         }
         template <typename Callable, typename order_t, typename dir_t = left_first_t>
-        void Traverse(Callable callable, order_t order, dir_t = dir_t{})
+        void Traverse(Callable callable, order_t order, dir_t dir = dir_t{})
         {
-            for (auto iter = tree->template begin<order_t, dir_t>(); iter != tree->template end<order_t, dir_t>(); ++iter)
+            if (!tree)
+                throw tree_not_exist(__func__);
+            for (auto iter = tree->begin(order, dir); iter != tree->end(order, dir); ++iter)
                 callable(*iter);
         }
         template <typename Callable, typename dir_t = left_first_t>
-        void LevelOrderTraverse(Callable callable, dir_t = dir_t{})
+        void LevelOrderTraverse(Callable callable, dir_t dir = dir_t{})
         {
-            auto iter = tree->template root<preorder_t, dir_t>();
+            if (!tree)
+                throw tree_not_exist(__func__);
+            auto iter = tree->root(preorder, dir);
             if(!iter)
                 return;
             std::queue<decltype(iter)> queue;
@@ -281,27 +299,27 @@ namespace binary_tree_nm
             while (!queue.empty())
             {
                 iter = queue.front(), queue.pop();
-                if (iter.template first_child<dir_t>())
-                    queue.push(iter.template first_child<dir_t>());
-                if (iter.template second_child<dir_t>())
-                    queue.push(iter.template second_child<dir_t>());
+                if (iter.first_child(dir))
+                    queue.push(iter.first_child(dir));
+                if (iter.second_child(dir))
+                    queue.push(iter.second_child(dir));
                 callable(*iter);
             }
         }
 
         template <typename order_t = preorder_t, typename dir_t = left_first_t>
-        auto get_iterator(key_type const &key, order_t = order_t{}, dir_t = dir_t{})
+        auto get_iterator(key_type const &key, order_t order = order_t{}, dir_t dir = dir_t{})
         {
-            if(auto iter = std::find(tree->template begin<order_t, dir_t>(), tree->template end<order_t, dir_t>(), key))
+            if(auto iter = std::find(tree->begin(order, dir), tree->end(order, dir), key))
                 return iter;
             throw precondition_failed_to_satisfy(__func__);
         }
         template <typename order_t = preorder_t, typename dir_t = left_first_t>
-        auto get_end_iterator(order_t = order_t{}, dir_t = dir_t{})
+        auto get_end_iterator(order_t order = order_t{}, dir_t dir = dir_t{})
         {
             if(!tree)
                 throw precondition_failed_to_satisfy(__func__);
-            return tree->template end<order_t, dir_t>();
+            return tree->end(order, dir);
         }
 
         friend bool operator==(tree_adapter const &lhs, tree_adapter const &rhs)
