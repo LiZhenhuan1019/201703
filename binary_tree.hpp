@@ -226,6 +226,17 @@ namespace binary_tree_nm
                 using pointer = value_type *;
                 using reference = value_type &;
                 using iterator_category = std::bidirectional_iterator_tag;
+
+                template <typename iter1, typename iter2>
+                friend bool operator==(iter1 const &lhs, iter2 const &rhs)
+                {
+                    return lhs.node == rhs.node;
+                }
+                template <typename iter1, typename iter2>
+                friend bool operator!=(iter1 const &lhs, iter2 const &rhs)
+                {
+                    return !(lhs == rhs);
+                }
             };
             explicit binary_tree(handler_type root)
                 : root_(std::move(root))
@@ -603,17 +614,6 @@ namespace binary_tree_nm
             }
             handler_type root_;
         };
-
-        template <typename iter1, typename iter2>
-        bool operator==(iter1 const &lhs, iter2 const &rhs)
-        {
-            return lhs.node == rhs.node;
-        }
-        template <typename iter1, typename iter2>
-        bool operator!=(iter1 const &lhs, iter2 const &rhs)
-        {
-            return !(lhs == rhs);
-        }
     }
 }
 

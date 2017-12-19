@@ -59,8 +59,8 @@ namespace binary_tree_nm
             {
                 return !(get_key(lhs) < get_key(rhs)) && !(get_key(rhs) < get_key(rhs));
             }
-            template <typename Key, typename Value>
-            bool operator!=(stored_t<Key, Value> const &lhs, stored_t<Key,Value> const &rhs)
+            template <typename T1, typename T2>
+            bool operator!=(T1 const &lhs, T2 const &rhs)
             {
                 return !(lhs == rhs);
             }
