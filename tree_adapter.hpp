@@ -191,13 +191,13 @@ namespace binary_tree_nm
                 throw tree_not_exist(__func__);
             tree->clear();
         }
-        auto BiTreeEmpty()
+        auto BiTreeEmpty() const
         {
             if (!tree)
                 throw tree_not_exist(__func__);
             return tree->empty();
         }
-        auto BiTreeDepth()
+        auto BiTreeDepth() const
         {
             if (!tree)
                 throw tree_not_exist(__func__);
