@@ -216,8 +216,9 @@ namespace binary_tree_nm
             {
                 if (!tree)
                     throw tree_not_exist(__func__);
-                if (auto iter = std::find(tree->begin(order, dir), tree->end(order, dir), key))
-                    return get_value(*iter);
+                for (auto &element : tree_iterate(*tree, order, dir))
+                    if(element == key)
+                        return get_value(element);
                 throw precondition_failed_to_satisfy(__func__);
             }
             template <typename U, typename order_t = preorder_t, typename dir_t = left_first_t>
@@ -285,8 +286,8 @@ namespace binary_tree_nm
             {
                 if (!tree)
                     throw tree_not_exist(__func__);
-                for (auto iter = tree->begin(order, dir); iter != tree->end(order, dir); ++iter)
-                    callable(*iter);
+                for(auto &element : tree_iterate(*tree, order, dir))
+                    callable(element);
             }
             template <typename Callable, typename dir_t = left_first_t>
             void LevelOrderTraverse(Callable callable, dir_t dir = dir_t{})

@@ -333,7 +333,7 @@ namespace binary_tree_nm
                 }
                 const_iterator parent() const
                 {
-                    assert(node && node->parent);
+                    assert(node &&node->parent);
                     return const_iterator(tree, node->parent);
                 }
                 template <typename order = default_order, typename direction = default_direction>
@@ -430,7 +430,7 @@ namespace binary_tree_nm
                 }
                 iterator parent() const
                 {
-                    assert(node && node->parent);
+                    assert(node &&node->parent);
                     return iterator(tree, node->parent);
                 }
                 template <typename order = default_order, typename direction = default_direction>
@@ -614,6 +614,39 @@ namespace binary_tree_nm
             }
             handler_type root_;
         };
+
+        template <typename tree_t, typename order_t, typename dir_t>
+        class iterate_adapter
+        {
+        public:
+            explicit iterate_adapter(tree_t &&tree)
+                :tree(tree)
+            {
+            }
+
+            auto begin()
+            {
+                return tree.begin(order_t{}, dir_t{});
+            }
+            auto cbegin()
+            {
+                return tree.cbegin(order_t{}, dir_t{});
+            }
+            auto end()
+            {
+                return tree.end(order_t{}, dir_t{});
+            }
+            auto cend()
+            {
+                return tree.cend(order_t{}, dir_t{});
+            }
+            tree_t &&tree;
+        };
+        template <typename tree_t, typename order_t, typename dir_t = left_first_t>
+        auto tree_iterate(tree_t &&tree, order_t = order_t{}, dir_t = dir_t{})
+        {
+            return iterate_adapter<tree_t, order_t, dir_t>(std::forward<tree_t>(tree));
+        }
     }
 }
 
