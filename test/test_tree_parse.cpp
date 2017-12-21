@@ -6,7 +6,7 @@
 
 void test_tree_parse()
 {
-    using namespace binary_tree_nm;
+    using namespace ds_exp;
     using namespace std::literals;
     std::istringstream istream(R"~( [ (\,, 1), ([, 2), (\\,3), null, null, null, (\),4), null, null] )~"s);
     tree_parse<left_first_t, adapter::detail::stored_t<std::string, int>> parse(istream);

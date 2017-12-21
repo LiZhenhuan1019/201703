@@ -10,7 +10,7 @@
 #include "tree_parse.hpp"
 #include "save_load.hpp"
 
-namespace binary_tree_nm
+namespace ds_exp
 {
     inline namespace adapter
     {
@@ -102,7 +102,7 @@ namespace binary_tree_nm
             template <typename Key, typename Value>
             void assign_element(std::string str, detail::stored_t<Key, Value> &v)
             {
-                using binary_tree_nm::assign_element;
+                using ds_exp::assign_element;
                 std::istringstream source(str);
                 auto key_input = parse::detail::read_until(source, true, ',');
                 parse::detail::force_read_char(source, ',');

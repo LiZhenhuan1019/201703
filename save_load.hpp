@@ -3,14 +3,14 @@
 
 #include "tree_parse.hpp"
 
-namespace binary_tree_nm
+namespace ds_exp
 {
     inline namespace tree
     {
         template <typename T>
-        std::istream &operator>>(std::istream &in, binary_tree_nm::binary_tree<T> &tree)
+        std::istream &operator>>(std::istream &in, ds_exp::binary_tree<T> &tree)
         {
-            tree = binary_tree_nm::tree_parse<binary_tree_nm::left_first_t, T>(in).get_binary_tree().value();
+            tree = ds_exp::tree_parse<ds_exp::left_first_t, T>(in).get_binary_tree().value();
             return in;
         }
 

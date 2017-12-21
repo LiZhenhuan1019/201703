@@ -9,7 +9,7 @@
 #include "tree_adapter.hpp"
 #include "save_load.hpp"
 
-namespace binary_tree_nm
+namespace ds_exp
 {
     inline namespace ui
     {

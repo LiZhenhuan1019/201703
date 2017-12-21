@@ -5,7 +5,7 @@
 #include <memory>
 #include <cassert>
 
-namespace binary_tree_nm
+namespace ds_exp
 {
     inline namespace tree
     {

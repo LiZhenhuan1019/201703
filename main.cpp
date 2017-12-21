@@ -10,7 +10,7 @@ int main()
     test_binary_tree();
     test_tree_parse();
     test_tree_adapter();
-    binary_tree_nm::console_ui<std::string, std::string> ui;
+    ds_exp::console_ui<std::string, std::string> ui;
     ui.execute();
     return 0;
 }

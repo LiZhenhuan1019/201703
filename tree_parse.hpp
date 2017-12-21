@@ -8,7 +8,7 @@
 #include <functional>
 #include "binary_tree.hpp"
 
-namespace binary_tree_nm
+namespace ds_exp
 {
     inline namespace parse
     {

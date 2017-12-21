@@ -4,7 +4,7 @@
 
 void test_binary_tree()
 {
-    using namespace binary_tree_nm;
+    using namespace ds_exp;
     binary_tree<std::string> tree;
     tree.set_root("root");
     auto root = tree.begin();
