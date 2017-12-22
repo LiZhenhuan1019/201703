@@ -12,10 +12,12 @@ namespace ds_exp
         struct right_first_t;
         struct left_first_t
         {
+            constexpr left_first_t() = default;
             using inverse = right_first_t;
         };
         struct right_first_t
         {
+            constexpr right_first_t() = default;
             using inverse = left_first_t;
         };
         using left_t = left_first_t;
@@ -80,15 +82,18 @@ namespace ds_exp
 
         struct inorder_t
         {
+            constexpr inorder_t() = default;
             using inverse = inorder_t;
         };
         struct preorder_t;
         struct postorder_t
         {
+            constexpr postorder_t() = default;
             using inverse = preorder_t;
         };
         struct preorder_t
         {
+            constexpr preorder_t() = default;
             using inverse = postorder_t;
         };
         constexpr inorder_t inorder;
@@ -451,9 +456,9 @@ namespace ds_exp
                 for (auto src_iter = src.begin(preorder), dest_iter = cbegin(preorder); src_iter != src.end(); ++src_iter, ++dest_iter)
                 {
                     if (src_iter.first_child())
-                        new_child<default_direction>(dest_iter, *src_iter.first_child());
+                        new_child(dest_iter, *src_iter.first_child(), default_direction{});
                     if (src_iter.second_child())
-                        new_child<default_direction::inverse>(dest_iter, *src_iter.second_child());
+                        new_child(dest_iter, *src_iter.second_child(), default_direction::inverse{});
                 }
             }
             binary_tree &operator=(binary_tree &&) = default;
@@ -556,16 +561,16 @@ namespace ds_exp
                 return replace(subtree, binary_tree{});
             }
 
-            template <typename ...Args>
-            void set_root(Args &&...args)
+            template <typename U>
+            void set_root(U &&u)
             {
-                root_ = make_handler(value_type(std::forward<Args>(args)...), nullptr);
+                root_ = make_handler(std::forward<U>(u), nullptr);
             }
-            template <typename direction, typename iter, typename ...Args>
-            iter new_child(iter parent, Args &&...args)
+            template <typename direction, typename iter, typename U>
+            iter new_child(iter parent, U &&u, direction = direction{})
             {
                 auto &child = iterate_direction<direction>::first_child(parent.node);
-                child = make_handler(value_type(std::forward<Args>(args)...), parent.node);
+                child = make_handler(std::forward<U>(u), parent.node);
                 return iter(this, child.get());
             }
             template <typename iter, typename direction_t>
@@ -608,9 +613,10 @@ namespace ds_exp
                 else
                     return p->parent->right_child;
             }
-            auto make_handler(value_type &&t, node_type *parent = nullptr, handler_type left = nullptr, handler_type right = nullptr)
+            template <typename U>
+            auto make_handler(U &&u, node_type *parent = nullptr, handler_type left = nullptr, handler_type right = nullptr)
             {
-                return std::make_unique<node_type>(std::move(t), parent, std::move(left), std::move(right));
+                return std::make_unique<node_type>(std::forward<U>(u), parent, std::move(left), std::move(right));
             }
             handler_type root_;
         };
