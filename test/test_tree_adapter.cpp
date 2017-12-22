@@ -21,11 +21,11 @@ void test_tree_adapter()
     assert(adapter.Value("left") == 5);
     adapter.Assign("left", 2);
     assert(adapter.Parent("left") == adapter.Root());
-    assert(get_value(*adapter.Child<left_t>("left")) == 3);
-    assert(get_value(*adapter.Child<right_t>("right")) == 5);
-    assert(get_value(*adapter.Sibling<right_t>("left")) == 4);
-    assert(get_value(*adapter.Sibling<left_t>("right")) == 2);
-    auto right_node = adapter.Child<right_t>("root");
+    assert(get_value(*adapter.Child("left", left_child)) == 3);
+    assert(get_value(*adapter.Child("right", right_child)) == 5);
+    assert(get_value(*adapter.Sibling("left", right_child)) == 4);
+    assert(get_value(*adapter.Sibling("right", left_child)) == 2);
+    auto right_node = adapter.Child("root", right_child);
     decltype(adapter) new_adapter;
     new_adapter.CreateBiTree(definition);
     adapter.InsertChild<right_t>(right_node, new_adapter);
@@ -35,9 +35,9 @@ void test_tree_adapter()
     assert(adapter == equals);
     auto parent_of_replaced = adapter.Child("right", right_child, inorder, right_first);
     assert(get_key(*parent_of_replaced) == "right right");
-    auto replaced = adapter.DeleteChild<right_t>(parent_of_replaced);
-    adapter.DeleteChild<right_t>(right_node);
-    adapter.InsertChild<right_t>(right_node, replaced);
+    auto replaced = adapter.DeleteChild(parent_of_replaced, right_child);
+    adapter.DeleteChild(right_node, right_child);
+    adapter.InsertChild(right_node, replaced, right_child);
     equals.CreateBiTree(definition);
     assert(adapter == equals);
 }

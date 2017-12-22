@@ -39,15 +39,31 @@ namespace ds_exp
             {
                 return get_key(s.key);
             }
-            template <typename t1, typename t2>
-            bool operator<(t1 const &lhs, t2 const &rhs)
+            template <typename Key1, typename Value1, typename Key2, typename Value2>
+            bool operator<(stored_t<Key1,Value1> const &lhs, stored_t<Key2, Value2> const &rhs)
             {
                 return get_key(lhs) < get_key(rhs);
+            }
+            template <typename Key1, typename Value1, typename Key2>
+            bool operator<(stored_t<Key1,Value1> const &lhs, Key2 const &rhs)
+            {
+                return get_key(lhs) < rhs;
+            }
+            template <typename Key1, typename Key2, typename Value2>
+            bool operator<(Key1 const &lhs, stored_t<Key2, Value2> const &rhs)
+            {
+                return lhs < get_key(rhs);
             }
             template <typename t1, typename t2>
             struct support_equality
             {
-                constexpr static bool value = std::is_convertible_v<decltype(get_key(std::declval<t1>()) == get_key(std::declval<t2>())), bool>;
+                template <typename r1, typename r2, typename Ret = decltype(get_key(std::declval<r1>()) == get_key(std::declval<r2>()))>
+                static Ret helper(int)
+                {}
+                template <typename , typename, typename T = void>
+                static T helper(double)
+                {}
+                constexpr static bool value = std::is_convertible_v<decltype(helper<t1,t2>(0)), bool>;
             };
             template <typename t1, typename t2, std::enable_if_t<support_equality<t1, t2>::value, int> = 0>
             bool operator==(t1 const &lhs, t2 const &rhs)
