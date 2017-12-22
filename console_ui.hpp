@@ -90,7 +90,7 @@ namespace ds_exp
                                                  "                      以'('开始，以')'结束，中间以','分隔的键值对;\n"
                                                  "键与值均为字符串，但若其中包含会产生歧义的字符则需在之前添加'\\'进行转义。\n"
                                                  "构造出的树进行前序遍历得到的序列和列表中键值对的顺序相同。\n"
-                                                 "空格可在任意地方添加,但键值对中的空格将被视为键值对的一部分\n"
+                                                 "空格可在任意地方添加,但键值对中的空格将被视为键值对的一部分。\n"
                                                  "例子： [ (root,root value), (left,left value) ,(left left,2), null,null,null,(right,right value),null , null]\n";
                 std::cout << syntax_prompt;
                 auto definition = input_line<std::string>();
