@@ -94,7 +94,7 @@ namespace ds_exp
                     auto pos = in.tellg();
                     in.get();
                     if (((in.peek() == escaped) || ...))
-                    return;
+                        return;
                     in.seekg(pos);
                 }
             }
